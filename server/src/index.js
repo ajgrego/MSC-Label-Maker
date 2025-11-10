@@ -43,7 +43,8 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5002;
+const HOST = '0.0.0.0'; // Listen on all interfaces for Docker
 
-app.listen(PORT, () => {
-  console.log(`Label Maker Server is running on port ${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Label Maker Server is running on ${HOST}:${PORT}`);
 }); 
