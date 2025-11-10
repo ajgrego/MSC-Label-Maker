@@ -22,7 +22,7 @@ services:
       - SMTP_FROM=${SMTP_FROM:-}
       - CLIENT_URL=${CLIENT_URL:-http://localhost}
     volumes:
-      - database-data:/app/database.sqlite
+      - database-data:/app/data
       - excel-logs-data:/app/excel-logs
       - temp-data:/app/temp
     networks:

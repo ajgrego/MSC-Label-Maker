@@ -37,8 +37,8 @@ COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --chown=nodejs:nodejs . .
 
 # Create necessary directories with proper permissions
-RUN mkdir -p temp excel-logs && \
-    chown -R nodejs:nodejs temp excel-logs
+RUN mkdir -p temp excel-logs data && \
+    chown -R nodejs:nodejs temp excel-logs data
 
 # Switch to non-root user
 USER nodejs
