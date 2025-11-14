@@ -1,54 +1,68 @@
-# Build stage
-FROM node:18-alpine AS builder
+# Multi-stage build for MSC Label Maker Server
+# Optimized for Portainer deployment
+
+# Stage 1: Dependencies
+FROM node:18-alpine AS dependencies
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --omit=dev && npm cache clean --force
+# Install production dependencies only
+RUN npm ci --only=production --ignore-scripts && \
+    npm cache clean --force
 
-# Production stage
-FROM node:18-alpine
+# Stage 2: Production
+FROM node:18-alpine AS production
 
-# Install necessary packages for Puppeteer
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
+# Install system dependencies (if you need chromium for puppeteer, uncomment below)
+# RUN apk add --no-cache \
+#     chromium \
+#     nss \
+#     freetype \
+#     harfbuzz \
+#     ca-certificates \
+#     ttf-freefont
 
-# Set Puppeteer to use installed Chromium
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init && \
+    rm -rf /var/cache/apk/*
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+# Create app user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
 WORKDIR /app
 
-# Copy dependencies from builder
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+# Copy dependencies from previous stage
+COPY --from=dependencies --chown=nodejs:nodejs /app/node_modules ./node_modules
 
-# Copy application files
-COPY --chown=nodejs:nodejs . .
+# Copy application source
+COPY --chown=nodejs:nodejs package*.json ./
+COPY --chown=nodejs:nodejs src ./src
+COPY --chown=nodejs:nodejs reset-db.js ./
 
-# Create necessary directories with proper permissions
-RUN mkdir -p temp excel-logs data && \
-    chown -R nodejs:nodejs temp excel-logs data
+# Create required directories with proper permissions
+RUN mkdir -p /app/data /app/excel-logs /app/temp && \
+    chown -R nodejs:nodejs /app
 
 # Switch to non-root user
 USER nodejs
 
-# Expose port
+# Expose application port
 EXPOSE 5002
+
+# Set environment variables
+ENV NODE_ENV=production \
+    PORT=5002
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:5002/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))"
+    CMD node -e "require('http').get('http://localhost:5002/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))" || exit 1
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
 
 # Start the application
 CMD ["node", "src/index.js"]

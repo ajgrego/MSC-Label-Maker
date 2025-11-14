@@ -1,4 +1,7 @@
-# Build stage
+# Multi-stage build for MSC Label Maker Client
+# Optimized for Portainer deployment
+
+# Stage 1: Build React Application
 FROM node:18-alpine AS build
 
 WORKDIR /app
@@ -6,44 +9,52 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with clean install
-RUN npm install --omit=dev && npm cache clean --force
+# Install dependencies (including dev dependencies for build)
+RUN npm ci --legacy-peer-deps && \
+    npm cache clean --force
 
-# Copy application files
+# Copy source files
 COPY . .
 
-# Build the application
+# Build the React application
 RUN npm run build
 
-# Production stage
-FROM nginx:alpine
+# Stage 2: Production with Nginx
+FROM nginx:alpine AS production
 
 # Install curl for health checks
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl && \
+    rm -rf /var/cache/apk/*
 
-# Remove default nginx config
-RUN rm /etc/nginx/conf.d/default.conf
+# Remove default nginx configuration
+RUN rm -f /etc/nginx/conf.d/default.conf
 
-# Copy nginx configuration
+# Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built files
+# Copy built application from build stage
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Create non-root user for nginx
+# Set proper permissions
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx && \
     chown -R nginx:nginx /var/log/nginx && \
     touch /var/run/nginx.pid && \
     chown -R nginx:nginx /var/run/nginx.pid
 
+# Create nginx cache directory
+RUN mkdir -p /var/cache/nginx/client_temp && \
+    chown -R nginx:nginx /var/cache/nginx
+
 # Switch to non-root user
 USER nginx
 
+# Expose port
 EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:80/ || exit 1
+    CMD curl -f http://localhost/ || exit 1
 
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

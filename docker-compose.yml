@@ -1,12 +1,14 @@
 version: '3.8'
 
+# MSC Label Maker - Docker Compose Configuration
+# Optimized for Portainer Stack Deployment from Git Repository
+
 services:
-  server:
+  msc-server:
     build:
       context: ./server
       dockerfile: Dockerfile
-    pull_policy: build
-    image: msc-server:latest
+    image: msc-label-maker-server:latest
     container_name: msc-server
     restart: unless-stopped
     ports:
@@ -14,7 +16,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5002
-      - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRET=${JWT_SECRET:-change-this-secret-in-production}
       - SMTP_HOST=${SMTP_HOST:-}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-}
@@ -22,9 +24,9 @@ services:
       - SMTP_FROM=${SMTP_FROM:-}
       - CLIENT_URL=${CLIENT_URL:-http://localhost}
     volumes:
-      - database-data:/app/data
-      - excel-logs-data:/app/excel-logs
-      - temp-data:/app/temp
+      - msc-database:/app/data
+      - msc-excel-logs:/app/excel-logs
+      - msc-temp:/app/temp
     networks:
       - msc-network
     healthcheck:
@@ -36,31 +38,28 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: '1.0'
           memory: 1G
         reservations:
           cpus: '0.5'
           memory: 512M
 
-  client:
+  msc-client:
     build:
       context: ./client
       dockerfile: Dockerfile
-    pull_policy: build
-    image: msc-client:latest
+    image: msc-label-maker-client:latest
     container_name: msc-client
     restart: unless-stopped
-    env_file:
-      - stack.env
     ports:
       - "${CLIENT_PORT:-80}:80"
     depends_on:
-      server:
+      msc-server:
         condition: service_healthy
     networks:
       - msc-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      test: ["CMD", "curl", "-f", "http://localhost/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -80,9 +79,12 @@ networks:
     name: msc-network
 
 volumes:
-  database-data:
+  msc-database:
     driver: local
-  excel-logs-data:
+    name: msc-database
+  msc-excel-logs:
     driver: local
-  temp-data:
+    name: msc-excel-logs
+  msc-temp:
     driver: local
+    name: msc-temp

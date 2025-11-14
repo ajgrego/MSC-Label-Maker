@@ -1,249 +1,528 @@
-# Portainer Deployment Guide
+# Portainer Deployment Guide - MSC Label Maker
 
-This guide provides detailed instructions for deploying the My Sister's Closet Label Maker application using Portainer.
+Complete guide for deploying the MSC Label Maker application using Portainer.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
-- [Deployment Methods](#deployment-methods)
-- [Configuration](#configuration)
+- [Detailed Deployment Steps](#detailed-deployment-steps)
+- [Environment Variables](#environment-variables)
+- [Post-Deployment Verification](#post-deployment-verification)
 - [Troubleshooting](#troubleshooting)
-- [Maintenance](#maintenance)
+- [Maintenance & Updates](#maintenance--updates)
 
 ## Prerequisites
 
 ### System Requirements
-- Docker Engine 20.10 or higher
-- Portainer CE 2.0 or higher
-- Minimum 2GB RAM
-- Minimum 10GB disk space
+- **Docker Engine:** 20.10 or higher
+- **Portainer:** CE 2.0 or higher
+- **Memory:** Minimum 2GB RAM (4GB recommended)
+- **Disk Space:** Minimum 10GB free
+- **CPU:** 2 cores minimum
 
 ### Before You Begin
-1. Ensure Portainer is installed and accessible
-2. Have admin access to your Portainer instance
-3. Prepare your environment variables (see Configuration section)
+1. Portainer is installed and accessible
+2. You have admin access to your Portainer instance
+3. Your code is pushed to a Git repository (GitHub, GitLab, etc.)
+4. You have your server IP address ready
+
+---
 
 ## Quick Start
 
-### Method 1: Deploy from Git Repository (Recommended)
+### Step 1: Push Code to Git Repository
 
-1. **Login to Portainer**
-   - Navigate to your Portainer web interface
-   - Login with your admin credentials
-
-2. **Create New Stack**
-   - Go to **Stacks** → **Add Stack**
-   - Name: `msc-label-maker`
-
-3. **Configure Stack**
-   - Select **Repository** as build method
-   - Repository URL: `https://github.com/ajgrego/MSC-Label-Maker`
-   - Reference: `main`
-   - Compose path: `docker-compose.yml`
-
-4. **Set Environment Variables**
-   Click "Add an environment variable" and add:
-   ```
-   SERVER_PORT=5002
-   CLIENT_PORT=80
-   ```
-
-5. **Deploy Stack**
-   - Click **Deploy the stack**
-   - Wait for containers to start (check health status)
-
-### Method 2: Deploy from Stack File
-
-1. **Copy Stack Configuration**
-   - Copy the contents of `portainer-stack.yml` from the repository
-
-2. **Create New Stack in Portainer**
-   - Go to **Stacks** → **Add Stack**
-   - Name: `msc-label-maker`
-   - Select **Web editor**
-   - Paste the stack configuration
-
-3. **Configure Environment Variables**
-   (Same as Method 1, step 4)
-
-4. **Deploy Stack**
-   - Click **Deploy the stack**
-
-### Method 3: Deploy Pre-built Images
-
-If you have pre-built images in a registry:
-
-1. Update `portainer-stack.yml` image references:
-   ```yaml
-   server:
-     image: your-registry.com/msc-server:latest
-   
-   client:
-     image: your-registry.com/msc-client:latest
-   ```
-
-2. Follow Method 2 steps above
-
-## Configuration
-
-### Environment Variables
-
-#### Port Configuration
-Default ports can be changed:
-```
-SERVER_PORT=5002    # Backend API port
-CLIENT_PORT=80      # Frontend web port (use 8080 if 80 is taken)
+```bash
+git add .
+git commit -m "Docker configuration for Portainer deployment"
+git push origin main
 ```
 
-## Deployment Options
+### Step 2: Login to Portainer
 
-### Local Network Deployment
-
-For deployment on a local network:
+Navigate to your Portainer instance:
 ```
-CLIENT_PORT=8080
+http://YOUR_SERVER_IP:9000
 ```
 
-Access the app at: `http://192.168.1.100:8080`
+### Step 3: Create Stack
 
-### Production Deployment with Reverse Proxy
+1. Click **Stacks** in the left sidebar
+2. Click **+ Add stack** button
+3. Enter stack name: `msc-label-maker`
 
-For production with Nginx/Traefik reverse proxy:
+### Step 4: Configure Repository
 
-1. Remove port exposure from client service in stack
-2. Configure reverse proxy to forward to container
+Select **Repository** as build method and enter:
 
-### High Availability Setup
+- **Repository URL:** Your Git repository URL
+  ```
+  https://github.com/yourusername/MSC-Label-Maker.git
+  ```
+- **Repository reference:** `refs/heads/main`
+- **Compose path:** `docker-compose.yml`
+- **Authentication:** Enable if private repository
 
-For high availability:
-1. Use external database volume on NFS/CIFS
-2. Configure volume driver in stack:
-   ```yaml
-   volumes:
-     msc-database:
-       driver: local
-       driver_opts:
-         type: nfs
-         o: addr=your-nas-ip,rw
-         device: ":/path/to/share"
-   ```
+### Step 5: Set Environment Variables
 
-## Accessing the Application
+Click **+ Add environment variable** for each:
 
-### After Deployment
+| Variable | Value | Required |
+|----------|-------|----------|
+| `JWT_SECRET` | Generate: `openssl rand -base64 32` | **YES** |
+| `CLIENT_URL` | `http://YOUR_SERVER_IP` | **YES** |
+| `SERVER_PORT` | `5002` | No (default: 5002) |
+| `CLIENT_PORT` | `80` | No (default: 80) |
 
-1. **Check Stack Status**
-   - Go to **Stacks** → Select your stack
-   - Verify all containers are **running** and **healthy**
+**Example Values:**
+```
+JWT_SECRET=wX8K3n9mP2vL5qR7tY4uI6oP9aS2dF5gH8jK1lZ3xC
+CLIENT_URL=http://192.168.1.230
+SERVER_PORT=5002
+CLIENT_PORT=80
+```
 
-2. **Access the Application**
-   - Frontend: `http://your-server-ip:80`
-   - Backend API: `http://your-server-ip:5002/api/health`
+### Step 6: Deploy
+
+1. Click **Deploy the stack**
+2. Wait 5-10 minutes for the build to complete
+3. Monitor logs for any errors
+
+### Step 7: Access Application
+
+Open your browser to:
+```
+http://YOUR_SERVER_IP
+```
+
+---
+
+## Detailed Deployment Steps
+
+### Method 1: Repository Deployment (Recommended)
+
+This method allows Portainer to pull code directly from your Git repository.
+
+#### 1.1 Prepare Your Repository
+
+Ensure all Docker files are committed:
+```bash
+git status  # Check what's changed
+git add .
+git commit -m "Production Docker configuration"
+git push origin main
+```
+
+#### 1.2 Create Stack in Portainer
+
+**Navigate to Stacks:**
+- Portainer Dashboard → **Stacks** → **+ Add stack**
+
+**Configure Stack:**
+- **Name:** `msc-label-maker` (use lowercase, hyphens only)
+- **Build method:** Select **Repository**
+
+**Repository Settings:**
+- **Repository URL:**
+  - GitHub: `https://github.com/username/MSC-Label-Maker.git`
+  - GitLab: `https://gitlab.com/username/MSC-Label-Maker.git`
+- **Repository reference:** `refs/heads/main` (or `refs/heads/master`)
+- **Compose path:** `docker-compose.yml`
+
+**For Private Repositories:**
+- Enable **Use authentication**
+- **Username:** Your Git username
+- **Personal access token:** Generate from GitHub/GitLab settings
+
+#### 1.3 Configure Environment Variables
+
+**Required Variables:**
+
+**JWT_SECRET** (REQUIRED)
+Generate a secure secret:
+```bash
+openssl rand -base64 32
+```
+Example output: `wX8K3n9mP2vL5qR7tY4uI6oP9aS2dF5gH8jK1lZ3xC`
+
+**CLIENT_URL** (REQUIRED)
+Your server's IP address or domain:
+```
+http://192.168.1.230
+```
+or for production with domain:
+```
+https://labels.example.com
+```
+
+**Optional Variables:**
+
+**SMTP Configuration** (for email features):
+```
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+SMTP_FROM=your-email@gmail.com
+```
+
+For Gmail, create an app-specific password: https://support.google.com/accounts/answer/185833
+
+#### 1.4 Deploy Stack
+
+1. Review all settings
+2. Click **Deploy the stack**
+3. Portainer will:
+   - Clone your repository
+   - Build Docker images (5-10 minutes)
+   - Start containers
+   - Run health checks
+
+#### 1.5 Monitor Deployment
+
+**View Build Logs:**
+- Click on the stack name
+- Select each container
+- Click **Logs** tab
+
+**Expected Log Messages:**
+- **Server:** `Label Maker Server is running on 0.0.0.0:5002`
+- **Client:** Nginx access logs
+
+---
+
+### Method 2: Web Editor Deployment
+
+If you prefer not to use Git, paste the docker-compose.yml directly.
+
+#### 2.1 Create Stack
+
+- Go to **Stacks** → **+ Add stack**
+- Name: `msc-label-maker`
+- Build method: **Web editor**
+
+#### 2.2 Paste Configuration
+
+Copy the entire contents of `docker-compose.yml` and paste into the editor.
+
+#### 2.3 Add Environment Variables
+
+Same as Method 1, Step 1.3
+
+#### 2.4 Deploy
+
+Click **Deploy the stack**
+
+**Note:** This method requires manual updates when code changes.
+
+---
+
+## Environment Variables
+
+### Complete Reference
+
+| Variable | Description | Required | Default | Example |
+|----------|-------------|----------|---------|---------|
+| `JWT_SECRET` | Secret key for authentication | **YES** | None | `wX8K3n9mP2vL5qR7...` |
+| `CLIENT_URL` | Application URL | **YES** | `http://localhost` | `http://192.168.1.230` |
+| `SERVER_PORT` | Backend API port | No | `5002` | `5002` |
+| `CLIENT_PORT` | Frontend port | No | `80` | `80` or `8080` |
+| `SMTP_HOST` | SMTP server | No | Empty | `smtp.gmail.com` |
+| `SMTP_PORT` | SMTP port | No | `587` | `587` |
+| `SMTP_USER` | Email username | No | Empty | `user@gmail.com` |
+| `SMTP_PASS` | Email password | No | Empty | `app-password` |
+| `SMTP_FROM` | Sender email | No | Empty | `noreply@example.com` |
+| `NODE_ENV` | Environment | No | `production` | `production` |
+
+### Generating JWT_SECRET
+
+**Option 1: OpenSSL (recommended)**
+```bash
+openssl rand -base64 32
+```
+
+**Option 2: Node.js**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+**Option 3: Online Generator**
+Use: https://www.grc.com/passwords.htm (Perfect Passwords section)
+
+---
+
+## Post-Deployment Verification
+
+### 1. Check Container Status
+
+**In Portainer:**
+- Go to **Stacks** → **msc-label-maker**
+- Verify both containers show **running** (green icon)
+- Check health status (should be **healthy**)
+
+**Container Names:**
+- `msc-server` (backend)
+- `msc-client` (frontend/nginx)
+
+### 2. View Container Logs
+
+**Server Logs:**
+```bash
+docker logs msc-server
+```
+Expected: `Label Maker Server is running on 0.0.0.0:5002`
+
+**Client Logs:**
+```bash
+docker logs msc-client
+```
+Expected: Nginx startup messages
+
+### 3. Test Health Endpoints
+
+**Server Health Check:**
+```bash
+curl http://YOUR_SERVER_IP:5002/api/health
+```
+Expected response:
+```json
+{"status":"ok","timestamp":"2024-11-14T..."}
+```
+
+**Client Health Check:**
+```bash
+curl http://YOUR_SERVER_IP/
+```
+Expected: HTML content
+
+### 4. Access Application
+
+**Open in Browser:**
+```
+http://YOUR_SERVER_IP
+```
+
+You should see the MSC Label Maker home page.
+
+### 5. Verify API Connection
+
+Check browser console (F12) for any errors. The frontend should successfully connect to the backend API.
+
+---
 
 ## Troubleshooting
 
 ### Container Fails to Start
 
-1. **Check Logs**
-   - Stacks → Select Stack → Select Container → Logs
-   - Look for error messages
+**1. Check Logs**
 
-2. **Common Issues**
-   - Port conflicts: Change SERVER_PORT or CLIENT_PORT
-   - Image pull errors: Check network connectivity
+In Portainer:
+- Stacks → msc-label-maker
+- Click failing container
+- View **Logs** tab
 
-### Health Check Failures
+**2. Common Issues**
 
-**Server Unhealthy:**
-```bash
-# Check if server is responding
-docker exec msc-server wget -O- http://localhost:5002/api/health
+**Build Errors:**
+```
+Error: Cannot find module 'express'
+```
+**Solution:** Ensure `package.json` and `package-lock.json` exist in both `client/` and `server/` directories.
+
+**Port Conflicts:**
+```
+Error: bind: address already in use
+```
+**Solution:** Change port in environment variables:
+```
+CLIENT_PORT=8080
+SERVER_PORT=5003
 ```
 
-**Client Unhealthy:**
-```bash
-# Check nginx status
-docker exec msc-client curl -f http://localhost:80/
+**Permission Denied:**
 ```
+Error: EACCES: permission denied
+```
+**Solution:** Check Docker has permission to create volumes. May need to adjust volume paths or run Docker as proper user.
+
+### Client Can't Connect to Server
+
+**Symptom:** Frontend loads but API calls fail (check browser console).
+
+**1. Verify Service Names**
+
+The nginx.conf must match docker-compose.yml service names:
+- nginx.conf: `proxy_pass http://msc-server:5002`
+- docker-compose.yml: `msc-server:` (service name)
+
+**2. Check Network**
+
+```bash
+docker network inspect msc-network
+```
+
+Ensure both containers are connected.
+
+**3. Test Server from Client Container**
+
+```bash
+docker exec msc-client wget -O- http://msc-server:5002/api/health
+```
+
+Should return: `{"status":"ok",...}`
+
+### Health Checks Failing
+
+**Server Health Check:**
+```bash
+docker exec msc-server node -e "require('http').get('http://localhost:5002/api/health', (r) => {console.log(r.statusCode)})"
+```
+
+**Client Health Check:**
+```bash
+docker exec msc-client curl -f http://localhost/
+```
+
+### Stack Won't Deploy
+
+**Authentication Errors:**
+- Verify Git credentials
+- For private repos, use Personal Access Token
+- GitHub: Settings → Developer settings → Personal access tokens
+- GitLab: Settings → Access Tokens
+
+**Build Timeout:**
+- Increase timeout in Portainer settings
+- Or build locally first:
+  ```bash
+  docker-compose build
+  docker-compose push  # If using registry
+  ```
 
 ### Database Issues
 
-**Reset Database (⚠️ Deletes all data):**
+**Reset Database** (⚠️ Deletes all data):
 ```bash
-# Stop stack
-# Delete volume
-docker volume rm msc-label-maker_database-data
-# Restart stack
+# Stop containers
+docker-compose down
+
+# Remove database volume
+docker volume rm msc-database
+
+# Restart
+docker-compose up -d
 ```
 
 **Backup Database:**
 ```bash
-# Create backup
-docker run --rm -v msc-label-maker_database-data:/data \
-  -v $(pwd):/backup alpine \
-  tar czf /backup/database-backup-$(date +%Y%m%d).tar.gz -C /data .
+docker run --rm \
+  -v msc-database:/data \
+  -v $(pwd):/backup \
+  alpine tar czf /backup/db-backup-$(date +%Y%m%d).tar.gz -C /data .
 ```
 
 **Restore Database:**
 ```bash
-# Restore from backup
-docker run --rm -v msc-label-maker_database-data:/data \
-  -v $(pwd):/backup alpine \
-  tar xzf /backup/database-backup-YYYYMMDD.tar.gz -C /data
+docker run --rm \
+  -v msc-database:/data \
+  -v $(pwd):/backup \
+  alpine tar xzf /backup/db-backup-YYYYMMDD.tar.gz -C /data
 ```
 
-### Cannot Access Application
+### Network/Firewall Issues
 
-1. **Check Firewall**
-   ```bash
-   # Allow ports through firewall
-   sudo ufw allow 80/tcp
-   sudo ufw allow 5002/tcp
-   ```
+**Check Firewall:**
+```bash
+# Ubuntu/Debian
+sudo ufw status
+sudo ufw allow 80/tcp
+sudo ufw allow 5002/tcp
 
-2. **Verify Port Binding**
-   - Go to Containers → msc-client
-   - Check Published Ports section
+# CentOS/RHEL
+sudo firewall-cmd --list-all
+sudo firewall-cmd --add-port=80/tcp --permanent
+sudo firewall-cmd --add-port=5002/tcp --permanent
+sudo firewall-cmd --reload
+```
 
-3. **Check Network**
-   - Ensure both containers are on `msc-network`
-   - Verify network connectivity between containers
+**Verify Ports:**
+```bash
+# Check if ports are listening
+netstat -tlnp | grep -E '80|5002'
 
-## Maintenance
+# Or with ss
+ss -tlnp | grep -E '80|5002'
+```
+
+### Rebuild Stack
+
+**Complete Rebuild:**
+
+1. **Stop and Remove:**
+   - Portainer: Stacks → msc-label-maker → **Stop**
+   - Click **Delete this stack**
+   - ⚠️ Check **Remove associated volumes** ONLY if you want to delete data
+
+2. **Redeploy:**
+   - Follow deployment steps again
+   - Data persists if volumes weren't deleted
+
+**Force Rebuild (Git Changes):**
+
+1. Go to **Stacks** → **msc-label-maker**
+2. Click **Editor** tab
+3. Enable **Re-pull image and redeploy**
+4. Click **Update the stack**
+
+---
+
+## Maintenance & Updates
 
 ### Updating the Application
 
-1. **Pull Latest Changes**
-   - Stacks → Select Stack → Editor
-   - Click **Pull and redeploy**
+**Method 1: Git Repository**
 
-2. **Manual Update**
+1. Push code changes to Git:
    ```bash
-   # In Portainer terminal or SSH
-   docker pull your-registry/msc-server:latest
-   docker pull your-registry/msc-client:latest
+   git add .
+   git commit -m "Update application"
+   git push
    ```
-   - Stacks → Select Stack → **Update the stack**
+
+2. In Portainer:
+   - Stacks → msc-label-maker → **Editor**
+   - Enable **Re-pull image and redeploy**
+   - Click **Update the stack**
+
+**Method 2: Manual**
+
+Update `docker-compose.yml` in Portainer editor, then click **Update the stack**.
 
 ### Backup Strategy
 
 **Automated Backup Script:**
+
+Create `/scripts/backup-msc.sh`:
 ```bash
 #!/bin/bash
-# backup-msc.sh
 BACKUP_DIR="/backups/msc-label-maker"
 DATE=$(date +%Y%m%d-%H%M%S)
 
-# Create backup directory
 mkdir -p "$BACKUP_DIR"
 
 # Backup database
 docker run --rm \
-  -v msc-label-maker_database-data:/data \
+  -v msc-database:/data \
   -v "$BACKUP_DIR":/backup \
   alpine tar czf "/backup/database-$DATE.tar.gz" -C /data .
 
-# Keep only last 30 days of backups
+# Backup logs
+docker run --rm \
+  -v msc-excel-logs:/data \
+  -v "$BACKUP_DIR":/backup \
+  alpine tar czf "/backup/logs-$DATE.tar.gz" -C /data .
+
+# Keep only last 30 days
 find "$BACKUP_DIR" -name "*.tar.gz" -mtime +30 -delete
 
 echo "Backup completed: $DATE"
@@ -251,79 +530,202 @@ echo "Backup completed: $DATE"
 
 **Schedule with Cron:**
 ```bash
-# Run daily at 2 AM
-0 2 * * * /path/to/backup-msc.sh >> /var/log/msc-backup.log 2>&1
+# Make executable
+chmod +x /scripts/backup-msc.sh
+
+# Edit crontab
+crontab -e
+
+# Add daily backup at 2 AM
+0 2 * * * /scripts/backup-msc.sh >> /var/log/msc-backup.log 2>&1
 ```
 
 ### Monitoring
 
 **View Container Stats:**
-- Portainer → Containers → Select Container → Stats
+- Portainer → Containers → Select container → **Stats**
 
 **View Logs:**
-- Portainer → Containers → Select Container → Logs
+- Portainer → Containers → Select container → **Logs**
 
-**Set Up Alerts:**
-- Portainer → Settings → Notifications
-- Configure webhook for container failures
+**Resource Usage:**
+```bash
+docker stats msc-server msc-client
+```
 
-### Resource Management
+### Scaling & Performance
 
 **Adjust Resource Limits:**
 
-Edit stack YAML to modify:
+Edit docker-compose.yml:
 ```yaml
 deploy:
   resources:
     limits:
       cpus: '2.0'      # Increase CPU
       memory: 2G       # Increase memory
-    reservations:
-      cpus: '1.0'
-      memory: 1G
 ```
 
-### Scaling Considerations
-
-This application uses SQLite and is designed for single-instance deployment. For high-traffic scenarios:
-
-1. Consider migrating to PostgreSQL/MySQL
+**Note:** This application uses SQLite and is designed for single-instance deployment. For high-traffic scenarios, consider:
+1. Migrate to PostgreSQL/MySQL
 2. Implement session storage (Redis)
-3. Use load balancer for client service
-4. Separate database to dedicated server
+3. Use load balancer
+4. Separate database server
+
+---
 
 ## Security Best Practices
 
-1. **Use HTTPS**
-   - Deploy behind reverse proxy with SSL/TLS
-   - Use Let's Encrypt for free certificates
+### 1. Use HTTPS
 
-2. **Restrict Access**
-   - Use Portainer's access control
-   - Limit port exposure to necessary services only
-   - Consider network isolation if on public network
+**Option A: Reverse Proxy (Recommended)**
 
-3. **Regular Updates**
-   - Keep Docker images updated
-   - Monitor security advisories
+Use nginx/Traefik/Caddy with Let's Encrypt:
+```bash
+# Example with Caddy
+caddy reverse-proxy --from labels.example.com --to localhost:80
+```
 
-4. **Secure Environment Variables**
-   - Never commit .env files to git
-   - Use Portainer's secrets management for sensitive data
+**Option B: Update docker-compose.yml**
 
-5. **Network Isolation**
-   - Keep application network isolated
-   - Use Portainer's network management
+Add SSL certificates to nginx container.
 
-## Support
+### 2. Secure Environment Variables
 
-For issues specific to:
-- **Application**: Create issue on GitHub repository
-- **Portainer**: Check Portainer documentation
-- **Docker**: Refer to Docker documentation
+- Never commit `.env` files to Git
+- Use Portainer's secrets management for sensitive data
+- Rotate JWT_SECRET periodically
 
-## Additional Resources
+### 3. Firewall Configuration
 
-- [Portainer Documentation](https://docs.portainer.io/)
-- [Docker Compose Reference](https://docs.docker.com/compose/compose-file/)
-- [Application README](./README.md)
+Restrict access to necessary ports only:
+```bash
+# Allow only HTTP/HTTPS
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+
+# Block direct access to backend
+sudo ufw deny 5002/tcp
+```
+
+### 4. Regular Updates
+
+- Keep Docker updated
+- Update base images regularly
+- Monitor for security advisories
+
+### 5. Network Isolation
+
+- Use Docker networks to isolate services
+- Don't expose ports unless necessary
+- Use Portainer's access control features
+
+---
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────┐
+│           User Browser                      │
+└─────────────────┬───────────────────────────┘
+                  │ HTTP :80
+                  ▼
+┌─────────────────────────────────────────────┐
+│      msc-client (Nginx + React)             │
+│  Container: msc-client                      │
+│  - Serves static React build                │
+│  - Proxies /api → msc-server:5002           │
+└─────────────────┬───────────────────────────┘
+                  │ Internal Docker network
+                  │ msc-network
+                  ▼
+┌─────────────────────────────────────────────┐
+│      msc-server (Node.js + Express)         │
+│  Container: msc-server                      │
+│  - REST API on port 5002                    │
+│  - SQLite Database                          │
+│  - Business logic                           │
+└─────────────────┬───────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────┐
+│       Docker Volumes (Persistent)           │
+│  - msc-database (SQLite data)               │
+│  - msc-excel-logs (Application logs)        │
+│  - msc-temp (Temporary files)               │
+└─────────────────────────────────────────────┘
+```
+
+**Service Communication:**
+- Client → User: Port 80 (HTTP)
+- Client → Server: Internal network (msc-server:5002)
+- Server → Volumes: Docker volume mounts
+
+---
+
+## Quick Reference Commands
+
+```bash
+# View running containers
+docker ps
+
+# View logs
+docker logs msc-server
+docker logs msc-client
+docker logs msc-server --follow  # Follow logs in real-time
+
+# Restart containers
+docker restart msc-server msc-client
+
+# Stop containers
+docker stop msc-server msc-client
+
+# Start containers
+docker start msc-server msc-client
+
+# Execute command in container
+docker exec -it msc-server sh
+docker exec -it msc-client sh
+
+# View resource usage
+docker stats msc-server msc-client
+
+# Inspect network
+docker network inspect msc-network
+
+# List volumes
+docker volume ls | grep msc
+
+# Inspect volume
+docker volume inspect msc-database
+
+# Remove everything (⚠️ DANGER)
+docker-compose down -v  # Removes volumes too
+```
+
+---
+
+## Support & Resources
+
+**Documentation:**
+- [Portainer Docs](https://docs.portainer.io/)
+- [Docker Compose](https://docs.docker.com/compose/)
+- [Nginx Docs](https://nginx.org/en/docs/)
+
+**Getting Help:**
+1. Check container logs first
+2. Verify environment variables
+3. Test health endpoints
+4. Check network connectivity
+
+**Common URLs:**
+- Application: `http://YOUR_SERVER_IP`
+- Backend API: `http://YOUR_SERVER_IP:5002/api`
+- Health Check: `http://YOUR_SERVER_IP:5002/api/health`
+- Portainer: `http://YOUR_SERVER_IP:9000`
+
+---
+
+**Last Updated:** November 2024
+**Version:** 2.0.0
+**Docker Compose Version:** 3.8
