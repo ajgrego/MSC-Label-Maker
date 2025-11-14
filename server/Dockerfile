@@ -9,21 +9,13 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm ci --only=production --ignore-scripts && \
+# Install production dependencies
+# Using npm install instead of npm ci since this is a workspace subdirectory
+RUN npm install --omit=dev --no-package-lock && \
     npm cache clean --force
 
 # Stage 2: Production
 FROM node:18-alpine AS production
-
-# Install system dependencies (if you need chromium for puppeteer, uncomment below)
-# RUN apk add --no-cache \
-#     chromium \
-#     nss \
-#     freetype \
-#     harfbuzz \
-#     ca-certificates \
-#     ttf-freefont
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init && \

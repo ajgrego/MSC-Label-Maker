@@ -9,8 +9,9 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (including dev dependencies for build)
-RUN npm ci --legacy-peer-deps && \
+# Install all dependencies (including dev dependencies needed for build)
+# Using npm install since this is a workspace subdirectory
+RUN npm install --no-package-lock && \
     npm cache clean --force
 
 # Copy source files
