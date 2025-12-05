@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { Print as PrintIcon, ArrowBack as BackIcon } from '@mui/icons-material';
 import { usePrintQueue } from '../context/PrintQueueContext';
+import { getFullPagePrintStyles, getPrintStyles, getShelfLabelPrintStyles } from '../utils/printStyles';
 
 const PrintQueue = () => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ const PrintQueue = () => {
             sx={{
               width: '10in',
               height: '1in',
-              border: '2pt solid #F052A1',
+              border: '5pt solid #F052A1',
               bgcolor: 'white',
               display: 'flex',
               alignItems: 'center',
@@ -61,37 +62,42 @@ const PrintQueue = () => {
               padding: '0 20px',
               boxSizing: 'border-box',
               margin: '0.25in auto',
+              pageBreakInside: 'avoid',
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '24pt',
-                  color: '#F052A1',
-                }}
-              >
-                Size:
-              </Typography>
-              <Typography
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '24pt',
-                  color: '#F052A1',
-                }}
-              >
-                {data.size}
-              </Typography>
-            </Box>
-            <Typography
-              sx={{
-                fontWeight: 'bold',
-                fontSize: '24pt',
-                color: 'black',
-              }}
-            >
-              {data.category || 'Category'}
-            </Typography>
+            {!data.isBlank && (
+              <>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 'bold',
+                      fontSize: '30pt',
+                      color: '#F052A1',
+                    }}
+                  >
+                    Size:
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 'bold',
+                      fontSize: '30pt',
+                      color: '#F052A1',
+                    }}
+                  >
+                    {data.size}
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontWeight: 'bold',
+                    fontSize: '30pt',
+                    color: 'black',
+                  }}
+                >
+                  {data.category || 'Category'}
+                </Typography>
+              </>
+            )}
           </Box>
         ));
 
@@ -101,9 +107,9 @@ const PrintQueue = () => {
             key={`${label.id}-${i}`}
             className="bin-label"
             sx={{
-              width: '5in',
-              height: '5in',
-              border: '3pt solid #F052A1',
+              width: '5.5in',
+              height: '5.5in',
+              border: '8pt solid #F052A1',
               bgcolor: 'white',
               display: 'flex',
               alignItems: 'center',
@@ -112,20 +118,23 @@ const PrintQueue = () => {
               boxSizing: 'border-box',
               textAlign: 'center',
               margin: '0.5in auto',
+              pageBreakInside: 'avoid',
               pageBreakAfter: shouldBreak() ? 'always' : 'auto',
             }}
           >
-            <Typography
-              sx={{
-                fontWeight: 'bold',
-                fontSize: '48pt',
-                color: 'black',
-                lineHeight: 1.2,
-                wordBreak: 'break-word',
-              }}
-            >
-              {data.labelText || 'Label Text'}
-            </Typography>
+            {!data.isBlank && (
+              <Typography
+                sx={{
+                  fontWeight: 'bold',
+                  fontSize: '52pt',
+                  color: 'black',
+                  lineHeight: 1.2,
+                  wordBreak: 'break-word',
+                }}
+              >
+                {data.labelText || 'Label Text'}
+              </Typography>
+            )}
           </Box>
         ));
 
@@ -135,84 +144,89 @@ const PrintQueue = () => {
             key={`${label.id}-${i}`}
             className="shoe-label"
             sx={{
-              width: '5in',
-              height: '5in',
-              border: '3pt solid #F052A1',
+              width: '5.5in',
+              height: '5.5in',
+              border: '8pt solid #F052A1',
               bgcolor: 'white',
               display: 'flex',
               flexDirection: 'column',
               boxSizing: 'border-box',
               margin: '0.5in auto',
+              pageBreakInside: 'avoid',
               pageBreakAfter: shouldBreak() ? 'always' : 'auto',
             }}
           >
-            {/* Row 1 - Season */}
-            <Box
-              sx={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderBottom: '1pt solid black',
-                padding: '10px',
-              }}
-            >
-              <Typography
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '28pt',
-                  color: 'black',
-                  textAlign: 'center',
-                }}
-              >
-                {data.season}
-              </Typography>
-            </Box>
+            {!data.isBlank && (
+              <>
+                {/* Row 1 - Season */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderBottom: '1pt solid black',
+                    padding: '10px',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 'bold',
+                      fontSize: '32pt',
+                      color: 'black',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {data.season}
+                  </Typography>
+                </Box>
 
-            {/* Row 2 - Size Range */}
-            <Box
-              sx={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderBottom: '1pt solid black',
-                padding: '10px',
-              }}
-            >
-              <Typography
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '28pt',
-                  color: '#F052A1',
-                  textAlign: 'center',
-                }}
-              >
-                {data.sizeRange}
-              </Typography>
-            </Box>
+                {/* Row 2 - Size Range */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderBottom: '1pt solid black',
+                    padding: '10px',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 'bold',
+                      fontSize: '32pt',
+                      color: '#F052A1',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {data.sizeRange}
+                  </Typography>
+                </Box>
 
-            {/* Row 3 - Category */}
-            <Box
-              sx={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '10px',
-              }}
-            >
-              <Typography
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '28pt',
-                  color: 'black',
-                  textAlign: 'center',
-                }}
-              >
-                {data.category}
-              </Typography>
-            </Box>
+                {/* Row 3 - Category */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '10px',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 'bold',
+                      fontSize: '32pt',
+                      color: 'black',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {data.category}
+                  </Typography>
+                </Box>
+              </>
+            )}
           </Box>
         ));
 
@@ -235,37 +249,41 @@ const PrintQueue = () => {
               width: '8.5in',
               height: '11in',
               bgcolor: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              position: 'relative',
               boxSizing: 'border-box',
+              pageBreakInside: 'avoid',
               pageBreakAfter: 'always',
             }}
           >
             <Box
               sx={{
-                width: '100%',
-                height: '100%',
-                border: '5pt solid #F052A1',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                border: '25pt solid #F052A1',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 boxSizing: 'border-box',
-                padding: '0.5in',
+                padding: '60px',
               }}
             >
-              <Typography
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: getFontSize(data.noticeText),
-                  color: 'black',
-                  textAlign: 'center',
-                  lineHeight: 1.3,
-                  wordBreak: 'break-word',
-                }}
-              >
-                {data.noticeText || 'Notice Text'}
-              </Typography>
+              {!data.isBlank && (
+                <Typography
+                  sx={{
+                    fontWeight: 'bold',
+                    fontSize: getFontSize(data.noticeText),
+                    color: 'black',
+                    textAlign: 'center',
+                    lineHeight: 1.3,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  {data.noticeText || 'Notice Text'}
+                </Typography>
+              )}
             </Box>
           </Box>
         ));
@@ -298,6 +316,17 @@ const PrintQueue = () => {
   }
 
   const totalLabels = queue.reduce((sum, label) => sum + (label.data.quantity || 1), 0);
+
+  // Check if queue contains any full page notices or shelf labels
+  const hasNotices = queue.some(label => label.type === 'notice');
+  const hasShelfLabels = queue.some(label => label.type === 'shelf');
+
+  // Determine which print styles to use
+  const getPrintStylesForQueue = () => {
+    if (hasNotices) return getFullPagePrintStyles();
+    if (hasShelfLabels) return getShelfLabelPrintStyles();
+    return getPrintStyles();
+  };
 
   return (
     <Box>
@@ -368,40 +397,7 @@ const PrintQueue = () => {
       </Box>
 
       {/* Print Styles */}
-      <style>{`
-        @media print {
-          @page {
-            size: 8.5in 11in;
-            margin: 0.25in;
-          }
-
-          body * {
-            visibility: hidden;
-          }
-
-          .print-only,
-          .print-only * {
-            visibility: visible;
-          }
-
-          .print-only {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
-
-          .no-print {
-            display: none !important;
-          }
-        }
-
-        @media screen {
-          .print-only {
-            display: none;
-          }
-        }
-      `}</style>
+      <style>{getPrintStylesForQueue()}</style>
     </Box>
   );
 };

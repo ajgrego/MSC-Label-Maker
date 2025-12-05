@@ -17,7 +17,7 @@ import {
 import { Print as PrintIcon, ArrowBack as BackIcon, Refresh as RefreshIcon, Add as AddIcon } from '@mui/icons-material';
 import { usePrintQueue } from '../context/PrintQueueContext';
 import PrintQueueSidebar from '../components/PrintQueueSidebar';
-import { getPrintStyles } from '../utils/printStyles';
+import { getShelfLabelPrintStyles } from '../utils/printStyles';
 
 const ShelfLabel = () => {
   const navigate = useNavigate();
@@ -26,20 +26,45 @@ const ShelfLabel = () => {
   const [category, setCategory] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'Plus'];
 
   const handlePrint = useCallback(() => {
+    const afterPrint = () => {
+      navigate('/');
+      window.removeEventListener('afterprint', afterPrint);
+    };
+    window.addEventListener('afterprint', afterPrint);
     window.print();
-  }, []);
+  }, [navigate]);
 
   const handleAddToQueue = useCallback(() => {
-    addToQueue({
+    const result = addToQueue({
       type: 'shelf',
       data: { size, category, quantity },
     });
-    setShowSuccess(true);
+    if (result && result.error) {
+      setErrorMessage(result.error);
+      setShowError(true);
+    } else {
+      setShowSuccess(true);
+    }
   }, [addToQueue, size, category, quantity]);
+
+  const handleAddBlankToQueue = useCallback(() => {
+    const result = addToQueue({
+      type: 'shelf',
+      data: { size: '', category: '', quantity: quantity, isBlank: true },
+    });
+    if (result && result.error) {
+      setErrorMessage(result.error);
+      setShowError(true);
+    } else {
+      setShowSuccess(true);
+    }
+  }, [addToQueue, quantity]);
 
   const handleReset = useCallback(() => {
     setSize('M');
@@ -118,6 +143,15 @@ const ShelfLabel = () => {
                 </Button>
                 <Button
                   variant="outlined"
+                  color="secondary"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddBlankToQueue}
+                  fullWidth
+                >
+                  Add Blank Label to Queue
+                </Button>
+                <Button
+                  variant="outlined"
                   startIcon={<PrintIcon />}
                   onClick={handlePrint}
                   fullWidth
@@ -140,14 +174,14 @@ const ShelfLabel = () => {
           <Grid item xs={12} md={5}>
             <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
               <Typography variant="h6" gutterBottom>
-                Preview (Actual Size)
+                Preview
               </Typography>
               <Box
                 sx={{
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  minHeight: '200px',
+                  minHeight: '100px',
                   overflow: 'auto',
                 }}
               >
@@ -162,7 +196,7 @@ const ShelfLabel = () => {
                     sx={{
                       width: '10in',
                       height: '1in',
-                      border: '2pt solid #F052A1',
+                      border: '5pt solid #F052A1',
                       bgcolor: 'white',
                       display: 'flex',
                       alignItems: 'center',
@@ -176,7 +210,7 @@ const ShelfLabel = () => {
                       <Typography
                         sx={{
                           fontWeight: 'bold',
-                          fontSize: '24pt',
+                          fontSize: '30pt',
                           color: '#F052A1',
                         }}
                       >
@@ -185,7 +219,7 @@ const ShelfLabel = () => {
                       <Typography
                         sx={{
                           fontWeight: 'bold',
-                          fontSize: '24pt',
+                          fontSize: '30pt',
                           color: '#F052A1',
                         }}
                       >
@@ -195,7 +229,7 @@ const ShelfLabel = () => {
                     <Typography
                       sx={{
                         fontWeight: 'bold',
-                        fontSize: '24pt',
+                        fontSize: '30pt',
                         color: 'black',
                       }}
                     >
@@ -226,6 +260,18 @@ const ShelfLabel = () => {
         </Alert>
       </Snackbar>
 
+      {/* Error Snackbar */}
+      <Snackbar
+        open={showError}
+        autoHideDuration={5000}
+        onClose={() => setShowError(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setShowError(false)} severity="error" sx={{ width: '100%' }}>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+
       {/* Print Only - Multiple copies */}
       <Box className="print-only">
         {Array.from({ length: quantity }, (_, i) => (
@@ -235,7 +281,7 @@ const ShelfLabel = () => {
             sx={{
               width: '10in',
               height: '1in',
-              border: '2pt solid #F052A1',
+              border: '8pt solid #F052A1',
               bgcolor: 'white',
               display: 'flex',
               alignItems: 'center',
@@ -250,7 +296,7 @@ const ShelfLabel = () => {
               <Typography
                 sx={{
                   fontWeight: 'bold',
-                  fontSize: '24pt',
+                  fontSize: '45pt',
                   color: '#F052A1',
                 }}
               >
@@ -259,7 +305,7 @@ const ShelfLabel = () => {
               <Typography
                 sx={{
                   fontWeight: 'bold',
-                  fontSize: '24pt',
+                  fontSize: '45pt',
                   color: '#F052A1',
                 }}
               >
@@ -269,7 +315,7 @@ const ShelfLabel = () => {
             <Typography
               sx={{
                 fontWeight: 'bold',
-                fontSize: '24pt',
+                fontSize: '45pt',
                 color: 'black',
               }}
             >
@@ -280,7 +326,7 @@ const ShelfLabel = () => {
       </Box>
 
       {/* Print Styles */}
-      <style>{getPrintStyles()}</style>
+      <style>{getShelfLabelPrintStyles()}</style>
     </Box>
   );
 };

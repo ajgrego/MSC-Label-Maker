@@ -21,18 +21,43 @@ const GenericBinLabel = () => {
   const [labelText, setLabelText] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handlePrint = useCallback(() => {
+    const afterPrint = () => {
+      navigate('/');
+      window.removeEventListener('afterprint', afterPrint);
+    };
+    window.addEventListener('afterprint', afterPrint);
     window.print();
-  }, []);
+  }, [navigate]);
 
   const handleAddToQueue = useCallback(() => {
-    addToQueue({
+    const result = addToQueue({
       type: 'bin',
       data: { labelText, quantity },
     });
-    setShowSuccess(true);
+    if (result && result.error) {
+      setErrorMessage(result.error);
+      setShowError(true);
+    } else {
+      setShowSuccess(true);
+    }
   }, [addToQueue, labelText, quantity]);
+
+  const handleAddBlankToQueue = useCallback(() => {
+    const result = addToQueue({
+      type: 'bin',
+      data: { labelText: '', quantity: quantity, isBlank: true },
+    });
+    if (result && result.error) {
+      setErrorMessage(result.error);
+      setShowError(true);
+    } else {
+      setShowSuccess(true);
+    }
+  }, [addToQueue, quantity]);
 
   const handleReset = useCallback(() => {
     setLabelText('');
@@ -97,6 +122,15 @@ const GenericBinLabel = () => {
                 </Button>
                 <Button
                   variant="outlined"
+                  color="secondary"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddBlankToQueue}
+                  fullWidth
+                >
+                  Add Blank Label to Queue
+                </Button>
+                <Button
+                  variant="outlined"
                   startIcon={<PrintIcon />}
                   onClick={handlePrint}
                   fullWidth
@@ -125,7 +159,7 @@ const GenericBinLabel = () => {
           <Grid item xs={12} md={5}>
             <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
               <Typography variant="h6" gutterBottom>
-                Preview (Actual Size)
+                Preview
               </Typography>
               <Box
                 sx={{
@@ -144,9 +178,9 @@ const GenericBinLabel = () => {
                 >
                   <Box
                     sx={{
-                      width: '5in',
-                      height: '5in',
-                      border: '3pt solid #F052A1',
+                      width: '5.5in',
+                      height: '5.5in',
+                      border: '8pt solid #F052A1',
                       bgcolor: 'white',
                       display: 'flex',
                       alignItems: 'center',
@@ -159,7 +193,7 @@ const GenericBinLabel = () => {
                     <Typography
                       sx={{
                         fontWeight: 'bold',
-                        fontSize: '48pt',
+                        fontSize: '52pt',
                         color: 'black',
                         lineHeight: 1.2,
                         wordBreak: 'break-word',
@@ -192,6 +226,18 @@ const GenericBinLabel = () => {
         </Alert>
       </Snackbar>
 
+      {/* Error Snackbar */}
+      <Snackbar
+        open={showError}
+        autoHideDuration={5000}
+        onClose={() => setShowError(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setShowError(false)} severity="error" sx={{ width: '100%' }}>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+
       {/* Print Only - Multiple copies */}
       <Box className="print-only">
         {Array.from({ length: quantity }, (_, i) => (
@@ -199,9 +245,9 @@ const GenericBinLabel = () => {
             key={i}
             className="bin-label-print"
             sx={{
-              width: '5in',
-              height: '5in',
-              border: '3pt solid #F052A1',
+              width: '5.5in',
+              height: '5.5in',
+              border: '8pt solid #F052A1',
               bgcolor: 'white',
               display: 'flex',
               alignItems: 'center',
@@ -216,7 +262,7 @@ const GenericBinLabel = () => {
             <Typography
               sx={{
                 fontWeight: 'bold',
-                fontSize: '48pt',
+                fontSize: '52pt',
                 color: 'black',
                 lineHeight: 1.2,
                 wordBreak: 'break-word',

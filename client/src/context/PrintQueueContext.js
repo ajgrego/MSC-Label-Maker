@@ -15,6 +15,20 @@ export const PrintQueueProvider = ({ children }) => {
   const [nextId, setNextId] = useState(1);
 
   const addToQueue = useCallback((label) => {
+    // Validation: Don't allow mixing full page notices with other label types
+    const hasNotices = queue.some(item => item.type === 'notice');
+    const hasOtherLabels = queue.some(item => item.type !== 'notice');
+
+    // If trying to add a notice but queue has other labels, reject
+    if (label.type === 'notice' && hasOtherLabels) {
+      return { error: 'Cannot add full page notices to a queue with other label types. Please clear the queue first.' };
+    }
+
+    // If trying to add other labels but queue has notices, reject
+    if (label.type !== 'notice' && hasNotices) {
+      return { error: 'Cannot add other labels when queue contains full page notices. Please clear the queue first.' };
+    }
+
     const newLabel = {
       id: nextId,
       ...label,
@@ -23,7 +37,7 @@ export const PrintQueueProvider = ({ children }) => {
     setQueue((prev) => [...prev, newLabel]);
     setNextId((prev) => prev + 1);
     return newLabel.id;
-  }, [nextId]);
+  }, [nextId, queue]);
 
   const removeFromQueue = useCallback((id) => {
     setQueue((prev) => prev.filter((label) => label.id !== id));

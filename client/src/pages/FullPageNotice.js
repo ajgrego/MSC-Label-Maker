@@ -21,18 +21,43 @@ const FullPageNotice = () => {
   const [noticeText, setNoticeText] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handlePrint = useCallback(() => {
+    const afterPrint = () => {
+      navigate('/');
+      window.removeEventListener('afterprint', afterPrint);
+    };
+    window.addEventListener('afterprint', afterPrint);
     window.print();
-  }, []);
+  }, [navigate]);
 
   const handleAddToQueue = useCallback(() => {
-    addToQueue({
+    const result = addToQueue({
       type: 'notice',
       data: { noticeText, quantity },
     });
-    setShowSuccess(true);
+    if (result && result.error) {
+      setErrorMessage(result.error);
+      setShowError(true);
+    } else {
+      setShowSuccess(true);
+    }
   }, [addToQueue, noticeText, quantity]);
+
+  const handleAddBlankToQueue = useCallback(() => {
+    const result = addToQueue({
+      type: 'notice',
+      data: { noticeText: '', quantity: quantity, isBlank: true },
+    });
+    if (result && result.error) {
+      setErrorMessage(result.error);
+      setShowError(true);
+    } else {
+      setShowSuccess(true);
+    }
+  }, [addToQueue, quantity]);
 
   const handleReset = useCallback(() => {
     setNoticeText('');
@@ -63,15 +88,15 @@ const FullPageNotice = () => {
       <Box
         sx={{
           position: 'absolute',
-          top: '0.5in',
-          left: '0.5in',
-          right: '0.5in',
-          bottom: '0.5in',
-          border: '5pt solid #F052A1',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          border: '35pt solid #F052A1',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '40px',
+          padding: '60px',
           boxSizing: 'border-box',
         }}
       >
@@ -149,6 +174,15 @@ const FullPageNotice = () => {
                 </Button>
                 <Button
                   variant="outlined"
+                  color="secondary"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddBlankToQueue}
+                  fullWidth
+                >
+                  Add Blank Label to Queue
+                </Button>
+                <Button
+                  variant="outlined"
                   startIcon={<PrintIcon />}
                   onClick={handlePrint}
                   fullWidth
@@ -222,6 +256,18 @@ const FullPageNotice = () => {
       >
         <Alert onClose={() => setShowSuccess(false)} severity="success" sx={{ width: '100%' }}>
           Label added to queue!
+        </Alert>
+      </Snackbar>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={showError}
+        autoHideDuration={5000}
+        onClose={() => setShowError(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setShowError(false)} severity="error" sx={{ width: '100%' }}>
+          {errorMessage}
         </Alert>
       </Snackbar>
 

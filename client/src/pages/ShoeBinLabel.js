@@ -27,6 +27,8 @@ const ShoeBinLabel = () => {
   const [category, setCategory] = useState('Casual Flats');
   const [quantity, setQuantity] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const seasonOptions = ['Spring/Summer', 'Fall/Winter'];
   const sizeRangeOptions = [
@@ -48,16 +50,39 @@ const ShoeBinLabel = () => {
   ];
 
   const handlePrint = useCallback(() => {
+    const afterPrint = () => {
+      navigate('/');
+      window.removeEventListener('afterprint', afterPrint);
+    };
+    window.addEventListener('afterprint', afterPrint);
     window.print();
-  }, []);
+  }, [navigate]);
 
   const handleAddToQueue = useCallback(() => {
-    addToQueue({
+    const result = addToQueue({
       type: 'shoe',
       data: { season, sizeRange, category, quantity },
     });
-    setShowSuccess(true);
+    if (result && result.error) {
+      setErrorMessage(result.error);
+      setShowError(true);
+    } else {
+      setShowSuccess(true);
+    }
   }, [addToQueue, season, sizeRange, category, quantity]);
+
+  const handleAddBlankToQueue = useCallback(() => {
+    const result = addToQueue({
+      type: 'shoe',
+      data: { season: '', sizeRange: '', category: '', quantity: quantity, isBlank: true },
+    });
+    if (result && result.error) {
+      setErrorMessage(result.error);
+      setShowError(true);
+    } else {
+      setShowSuccess(true);
+    }
+  }, [addToQueue, quantity]);
 
   const handleReset = useCallback(() => {
     setSeason('Spring/Summer');
@@ -69,9 +94,9 @@ const ShoeBinLabel = () => {
   const LabelContent = () => (
     <Box
       sx={{
-        width: '5in',
-        height: '5in',
-        border: '3pt solid #F052A1',
+        width: '5.5in',
+        height: '5.5in',
+        border: '8pt solid #F052A1',
         bgcolor: 'white',
         display: 'flex',
         flexDirection: 'column',
@@ -85,14 +110,14 @@ const ShoeBinLabel = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderBottom: '1pt solid black',
+          borderBottom: '8pt solid #F052A1',
           padding: '10px',
         }}
       >
         <Typography
           sx={{
             fontWeight: 'bold',
-            fontSize: '28pt',
+            fontSize: '32pt',
             color: 'black',
             textAlign: 'center',
           }}
@@ -108,14 +133,14 @@ const ShoeBinLabel = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderBottom: '1pt solid black',
+          borderBottom: '8pt solid #F052A1',
           padding: '10px',
         }}
       >
         <Typography
           sx={{
             fontWeight: 'bold',
-            fontSize: '28pt',
+            fontSize: '32pt',
             color: '#F052A1',
             textAlign: 'center',
           }}
@@ -137,7 +162,7 @@ const ShoeBinLabel = () => {
         <Typography
           sx={{
             fontWeight: 'bold',
-            fontSize: '28pt',
+            fontSize: '32pt',
             color: 'black',
             textAlign: 'center',
           }}
@@ -240,6 +265,15 @@ const ShoeBinLabel = () => {
                 </Button>
                 <Button
                   variant="outlined"
+                  color="secondary"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddBlankToQueue}
+                  fullWidth
+                >
+                  Add Blank Label to Queue
+                </Button>
+                <Button
+                  variant="outlined"
                   startIcon={<PrintIcon />}
                   onClick={handlePrint}
                   fullWidth
@@ -262,7 +296,7 @@ const ShoeBinLabel = () => {
           <Grid item xs={12} md={5}>
             <Paper sx={{ p: 3, bgcolor: '#f5f5f5' }}>
               <Typography variant="h6" gutterBottom>
-                Preview (Actual Size)
+                Preview
               </Typography>
               <Box
                 sx={{
@@ -301,6 +335,18 @@ const ShoeBinLabel = () => {
       >
         <Alert onClose={() => setShowSuccess(false)} severity="success" sx={{ width: '100%' }}>
           Label added to queue!
+        </Alert>
+      </Snackbar>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={showError}
+        autoHideDuration={5000}
+        onClose={() => setShowError(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setShowError(false)} severity="error" sx={{ width: '100%' }}>
+          {errorMessage}
         </Alert>
       </Snackbar>
 

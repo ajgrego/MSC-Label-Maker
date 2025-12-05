@@ -31,6 +31,9 @@ const PrintQueueSidebar = () => {
   };
 
   const getLabelPreview = (label) => {
+    if (label.data.isBlank) {
+      return '(Blank Label)';
+    }
     switch (label.type) {
       case 'shelf':
         return `Size: ${label.data.size} - ${label.data.category}`;
