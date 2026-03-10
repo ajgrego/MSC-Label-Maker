@@ -80,8 +80,8 @@ const PrintQueue = () => {
         key={`${label.id}-${i}`}
         className="bin-label"
         sx={{
-          width: '4.25in',
-          height: '5.5in',
+          width: '4in',
+          height: '4.5in',
           border: '12pt solid #F052A1',
           bgcolor: 'white',
           display: 'flex',
@@ -119,8 +119,8 @@ const PrintQueue = () => {
         key={`${label.id}-${i}`}
         className="shoe-label"
         sx={{
-          width: '4.25in',
-          height: '5.5in',
+          width: '4in',
+          height: '4.5in',
           border: '12pt solid #F052A1',
           bgcolor: 'white',
           display: 'flex',

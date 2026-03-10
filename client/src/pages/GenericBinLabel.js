@@ -149,7 +149,7 @@ const GenericBinLabel = () => {
 
               <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
                 <Typography variant="caption" color="text.secondary">
-                  <strong>Tip:</strong> Keep text short for best readability. 1-3 words works best for 4.5" × 4.5" labels.
+                  <strong>Tip:</strong> Keep text short for best readability. 1-3 words works best for 4" × 4.5" labels.
                 </Typography>
               </Box>
             </Paper>
@@ -178,8 +178,8 @@ const GenericBinLabel = () => {
                 >
                   <Box
                     sx={{
-                      width: '4.25in',
-                      height: '5.5in',
+                      width: '4in',
+                      height: '4.5in',
                       border: '12pt solid #F052A1',
                       bgcolor: 'white',
                       display: 'flex',

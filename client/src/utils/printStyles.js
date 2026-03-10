@@ -36,27 +36,28 @@ const basePrintReset = `
 
 /**
  * Bin & shoe labels — portrait, 4 per page in a 2×2 grid.
- * Labels are 4.25in × 5.5in (half the letter sheet in each dimension).
- * Zero page margin means labels fill edge-to-edge for easy single-cut trimming.
+ * Labels are 4in × 4.5in. Page margin of 0.25in (printable area 8in × 10.5in)
+ * keeps borders inside the printer's printable zone (no clipped outer border).
+ * 2×2 grid = 8in × 9in, fitting within the printable area.
  */
 export const getPrintStyles = () => `
   @media print {
     @page {
       size: 8.5in 11in;
-      margin: 0;
+      margin: 0.25in;
     }
     ${basePrintReset}
     /* 2×2 flex grid — each .label-page holds exactly 4 labels */
     .print-only {
       display: flex !important;
       flex-wrap: wrap;
-      width: 8.5in;
+      width: 8in;
     }
     .label-page {
       display: flex !important;
       flex-wrap: wrap;
-      width: 8.5in;
-      height: 11in;
+      width: 8in;
+      height: 10.5in;
       page-break-after: always;
       page-break-inside: avoid;
     }
