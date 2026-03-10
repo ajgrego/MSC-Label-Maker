@@ -149,7 +149,7 @@ const GenericBinLabel = () => {
 
               <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
                 <Typography variant="caption" color="text.secondary">
-                  <strong>Tip:</strong> Keep text short for best readability. 1-3 words works best for 5" × 5" labels.
+                  <strong>Tip:</strong> Keep text short for best readability. 1-3 words works best for 4.5" × 4.5" labels.
                 </Typography>
               </Box>
             </Paper>
@@ -172,20 +172,20 @@ const GenericBinLabel = () => {
                 <Box
                   className="bin-label-preview"
                   sx={{
-                    transform: 'scale(0.7)',
-                    transformOrigin: 'center',
+                    transform: 'scale(0.55)',
+                    transformOrigin: 'top center',
                   }}
                 >
                   <Box
                     sx={{
-                      width: '5.5in',
+                      width: '4.25in',
                       height: '5.5in',
-                      border: '8pt solid #F052A1',
+                      border: '12pt solid #F052A1',
                       bgcolor: 'white',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      padding: '20px',
+                      padding: '16px',
                       boxSizing: 'border-box',
                       textAlign: 'center',
                     }}
@@ -193,7 +193,7 @@ const GenericBinLabel = () => {
                     <Typography
                       sx={{
                         fontWeight: 'bold',
-                        fontSize: '52pt',
+                        fontSize: '42pt',
                         color: 'black',
                         lineHeight: 1.2,
                         wordBreak: 'break-word',
@@ -238,38 +238,43 @@ const GenericBinLabel = () => {
         </Alert>
       </Snackbar>
 
-      {/* Print Only - Multiple copies */}
+      {/* Print Only — grouped into pages of 4 (2×2 grid), easy single-cut trimming */}
       <Box className="print-only">
-        {Array.from({ length: quantity }, (_, i) => (
-          <Box
-            key={i}
-            className="bin-label-print"
-            sx={{
-              width: '5.5in',
-              height: '5.5in',
-              border: '8pt solid #F052A1',
-              bgcolor: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '20px',
-              boxSizing: 'border-box',
-              textAlign: 'center',
-              margin: '0.5in auto',
-              pageBreakAfter: i < quantity - 1 ? 'always' : 'auto',
-            }}
-          >
-            <Typography
-              sx={{
-                fontWeight: 'bold',
-                fontSize: '52pt',
-                color: 'black',
-                lineHeight: 1.2,
-                wordBreak: 'break-word',
-              }}
-            >
-              {labelText || 'Label Text'}
-            </Typography>
+        {Array.from({ length: Math.ceil(quantity / 4) }, (_, pageIdx) => (
+          <Box key={pageIdx} className="label-page">
+            {Array.from(
+              { length: Math.min(4, quantity - pageIdx * 4) },
+              (_, labelIdx) => (
+                <Box
+                  key={labelIdx}
+                  className="bin-label-print"
+                  sx={{
+                    width: '4.25in',
+                    height: '5.5in',
+                    border: '12pt solid #F052A1',
+                    bgcolor: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '16px',
+                    boxSizing: 'border-box',
+                    textAlign: 'center',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 'bold',
+                      fontSize: '42pt',
+                      color: 'black',
+                      lineHeight: 1.2,
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {labelText || 'Label Text'}
+                  </Typography>
+                </Box>
+              )
+            )}
           </Box>
         ))}
       </Box>

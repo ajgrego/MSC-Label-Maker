@@ -24,273 +24,225 @@ const PrintQueue = () => {
     navigate('/');
   };
 
-  // Render individual label based on type
-  const renderLabel = (label, index, isLast) => {
-    const { type, data } = label;
-
-    // Calculate if we need a page break
-    // For 5x5 labels, we can fit 2 per page
-    // For shelf labels, we can fit multiple per page
-    const shouldBreak = () => {
-      if (type === 'notice') return true; // Full page notices always break
-      if (type === 'shelf') return false; // Shelf labels don't break between each one
-      if (type === 'bin' || type === 'shoe') {
-        // For 5x5 labels, break after every 2nd label
-        const prevLabelsOfSameType = queue
-          .slice(0, index)
-          .filter((l) => l.type === type).length;
-        return prevLabelsOfSameType % 2 === 1 && !isLast;
-      }
-      return false;
-    };
-
-    switch (type) {
-      case 'shelf':
-        return Array.from({ length: data.quantity || 1 }, (_, i) => (
-          <Box
-            key={`${label.id}-${i}`}
-            className="shelf-label"
-            sx={{
-              width: '10in',
-              height: '1in',
-              border: '5pt solid #F052A1',
-              bgcolor: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 3,
-              padding: '0 20px',
-              boxSizing: 'border-box',
-              margin: '0.25in auto',
-              pageBreakInside: 'avoid',
-            }}
-          >
-            {!data.isBlank && (
-              <>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography
-                    sx={{
-                      fontWeight: 'bold',
-                      fontSize: '30pt',
-                      color: '#F052A1',
-                    }}
-                  >
-                    Size:
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontWeight: 'bold',
-                      fontSize: '30pt',
-                      color: '#F052A1',
-                    }}
-                  >
-                    {data.size}
-                  </Typography>
-                </Box>
-                <Typography
-                  sx={{
-                    fontWeight: 'bold',
-                    fontSize: '30pt',
-                    color: 'black',
-                  }}
-                >
-                  {data.category || 'Category'}
+  /**
+   * Build a single shelf label element.
+   * Respects data.showSize to conditionally render the size field.
+   */
+  const renderShelfLabel = (label, i) => {
+    const { data } = label;
+    return (
+      <Box
+        key={`${label.id}-${i}`}
+        className="shelf-label"
+        sx={{
+          width: '10in',
+          height: '1in',
+          border: '16pt solid #F052A1',
+          bgcolor: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 3,
+          padding: '0 20px',
+          boxSizing: 'border-box',
+          margin: '0.25in auto',
+          pageBreakInside: 'avoid',
+        }}
+      >
+        {!data.isBlank && (
+          <>
+            {data.showSize !== false && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ fontWeight: 'bold', fontSize: '30pt', color: '#F052A1' }}>
+                  Size:
                 </Typography>
-              </>
+                <Typography sx={{ fontWeight: 'bold', fontSize: '30pt', color: '#F052A1' }}>
+                  {data.size}
+                </Typography>
+              </Box>
             )}
-          </Box>
-        ));
+            <Typography sx={{ fontWeight: 'bold', fontSize: '30pt', color: 'black' }}>
+              {data.category || 'Category'}
+            </Typography>
+          </>
+        )}
+      </Box>
+    );
+  };
 
-      case 'bin':
-        return Array.from({ length: data.quantity || 1 }, (_, i) => (
-          <Box
-            key={`${label.id}-${i}`}
-            className="bin-label"
+  /**
+   * Build a single bin label element.
+   */
+  const renderBinLabel = (label, i) => {
+    const { data } = label;
+    return (
+      <Box
+        key={`${label.id}-${i}`}
+        className="bin-label"
+        sx={{
+          width: '4.25in',
+          height: '5.5in',
+          border: '12pt solid #F052A1',
+          bgcolor: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+          boxSizing: 'border-box',
+          textAlign: 'center',
+        }}
+      >
+        {!data.isBlank && (
+          <Typography
             sx={{
-              width: '5.5in',
-              height: '5.5in',
-              border: '8pt solid #F052A1',
-              bgcolor: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '20px',
-              boxSizing: 'border-box',
-              textAlign: 'center',
-              margin: '0.5in auto',
-              pageBreakInside: 'avoid',
-              pageBreakAfter: shouldBreak() ? 'always' : 'auto',
+              fontWeight: 'bold',
+              fontSize: '42pt',
+              color: 'black',
+              lineHeight: 1.2,
+              wordBreak: 'break-word',
             }}
           >
-            {!data.isBlank && (
-              <Typography
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '52pt',
-                  color: 'black',
-                  lineHeight: 1.2,
-                  wordBreak: 'break-word',
-                }}
-              >
-                {data.labelText || 'Label Text'}
-              </Typography>
-            )}
-          </Box>
-        ));
+            {data.labelText || 'Label Text'}
+          </Typography>
+        )}
+      </Box>
+    );
+  };
 
-      case 'shoe':
-        return Array.from({ length: data.quantity || 1 }, (_, i) => (
-          <Box
-            key={`${label.id}-${i}`}
-            className="shoe-label"
-            sx={{
-              width: '5.5in',
-              height: '5.5in',
-              border: '8pt solid #F052A1',
-              bgcolor: 'white',
-              display: 'flex',
-              flexDirection: 'column',
-              boxSizing: 'border-box',
-              margin: '0.5in auto',
-              pageBreakInside: 'avoid',
-              pageBreakAfter: shouldBreak() ? 'always' : 'auto',
-            }}
-          >
-            {!data.isBlank && (
-              <>
-                {/* Row 1 - Season */}
-                <Box
-                  sx={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderBottom: '1pt solid black',
-                    padding: '10px',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontWeight: 'bold',
-                      fontSize: '32pt',
-                      color: 'black',
-                      textAlign: 'center',
-                    }}
-                  >
-                    {data.season}
-                  </Typography>
-                </Box>
-
-                {/* Row 2 - Size Range */}
-                <Box
-                  sx={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderBottom: '1pt solid black',
-                    padding: '10px',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontWeight: 'bold',
-                      fontSize: '32pt',
-                      color: '#F052A1',
-                      textAlign: 'center',
-                    }}
-                  >
-                    {data.sizeRange}
-                  </Typography>
-                </Box>
-
-                {/* Row 3 - Category */}
-                <Box
-                  sx={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '10px',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontWeight: 'bold',
-                      fontSize: '32pt',
-                      color: 'black',
-                      textAlign: 'center',
-                    }}
-                  >
-                    {data.category}
-                  </Typography>
-                </Box>
-              </>
-            )}
-          </Box>
-        ));
-
-      case 'notice':
-        // Calculate font size based on text length
-        const getFontSize = (text) => {
-          const len = text.length;
-          if (len < 20) return '96pt';
-          if (len < 40) return '72pt';
-          if (len < 80) return '60pt';
-          if (len < 120) return '48pt';
-          return '36pt';
-        };
-
-        return Array.from({ length: data.quantity || 1 }, (_, i) => (
-          <Box
-            key={`${label.id}-${i}`}
-            className="notice-label"
-            sx={{
-              width: '8.5in',
-              height: '11in',
-              bgcolor: 'white',
-              position: 'relative',
-              boxSizing: 'border-box',
-              pageBreakInside: 'avoid',
-              pageBreakAfter: 'always',
-            }}
-          >
+  /**
+   * Build a single shoe label element.
+   */
+  const renderShoeLabel = (label, i) => {
+    const { data } = label;
+    return (
+      <Box
+        key={`${label.id}-${i}`}
+        className="shoe-label"
+        sx={{
+          width: '4.25in',
+          height: '5.5in',
+          border: '12pt solid #F052A1',
+          bgcolor: 'white',
+          display: 'flex',
+          flexDirection: 'column',
+          boxSizing: 'border-box',
+        }}
+      >
+        {!data.isBlank && (
+          <>
+            {/* Row 1 — Season */}
             <Box
               sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                border: '25pt solid #F052A1',
+                flex: 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxSizing: 'border-box',
-                padding: '60px',
+                borderBottom: '12pt solid #F052A1',
+                padding: '8px',
               }}
             >
-              {!data.isBlank && (
-                <Typography
-                  sx={{
-                    fontWeight: 'bold',
-                    fontSize: getFontSize(data.noticeText),
-                    color: 'black',
-                    textAlign: 'center',
-                    lineHeight: 1.3,
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {data.noticeText || 'Notice Text'}
-                </Typography>
-              )}
+              <Typography sx={{ fontWeight: 'bold', fontSize: '26pt', color: 'black', textAlign: 'center' }}>
+                {data.season}
+              </Typography>
             </Box>
-          </Box>
-        ));
 
-      default:
-        return null;
-    }
+            {/* Row 2 — Size Range */}
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderBottom: '12pt solid #F052A1',
+                padding: '8px',
+              }}
+            >
+              <Typography sx={{ fontWeight: 'bold', fontSize: '26pt', color: '#F052A1', textAlign: 'center' }}>
+                {data.sizeRange}
+              </Typography>
+            </Box>
+
+            {/* Row 3 — Category */}
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '8px',
+              }}
+            >
+              <Typography sx={{ fontWeight: 'bold', fontSize: '26pt', color: 'black', textAlign: 'center' }}>
+                {data.category}
+              </Typography>
+            </Box>
+          </>
+        )}
+      </Box>
+    );
+  };
+
+  /** Font size for notice text — shrinks as text gets longer */
+  const getNoticeFontSize = (text) => {
+    const len = (text || '').length;
+    if (len < 20) return '96pt';
+    if (len < 40) return '72pt';
+    if (len < 80) return '60pt';
+    if (len < 120) return '48pt';
+    return '36pt';
+  };
+
+  /**
+   * Build a single full-page notice element.
+   */
+  const renderNoticeLabel = (label, i) => {
+    const { data } = label;
+    return (
+      <Box
+        key={`${label.id}-${i}`}
+        className="notice-label"
+        sx={{
+          width: '8.5in',
+          height: '11in',
+          bgcolor: 'white',
+          position: 'relative',
+          boxSizing: 'border-box',
+          pageBreakInside: 'avoid',
+          pageBreakAfter: 'always',
+        }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            border: '25pt solid #F052A1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxSizing: 'border-box',
+            padding: '60px',
+          }}
+        >
+          {!data.isBlank && (
+            <Typography
+              sx={{
+                fontWeight: 'bold',
+                fontSize: getNoticeFontSize(data.noticeText),
+                color: 'black',
+                textAlign: 'center',
+                lineHeight: 1.3,
+                wordBreak: 'break-word',
+              }}
+            >
+              {data.noticeText || 'Notice Text'}
+            </Typography>
+          )}
+        </Box>
+      </Box>
+    );
   };
 
   if (queue.length === 0) {
@@ -387,13 +339,48 @@ const PrintQueue = () => {
         </Alert>
       </Box>
 
-      {/* Print Only - All labels */}
+      {/* Print Only — all labels.
+          Bin/shoe labels are grouped into pages of 4 (2×2 grid) for easy cutting.
+          Shelf and notice labels render individually (different page orientation). */}
       <Box className="print-only">
-        {queue.map((label, index) => (
-          <React.Fragment key={label.id}>
-            {renderLabel(label, index, index === queue.length - 1)}
-          </React.Fragment>
-        ))}
+        {(() => {
+          // Expand every queue entry into individual label elements
+          const shelfNotice = [];
+          const binShoe = [];
+
+          queue.forEach((label) => {
+            const count = label.data.quantity || 1;
+            if (label.type === 'shelf') {
+              Array.from({ length: count }, (_, i) =>
+                shelfNotice.push(renderShelfLabel(label, i))
+              );
+            } else if (label.type === 'notice') {
+              Array.from({ length: count }, (_, i) =>
+                shelfNotice.push(renderNoticeLabel(label, i))
+              );
+            } else if (label.type === 'bin') {
+              Array.from({ length: count }, (_, i) =>
+                binShoe.push(renderBinLabel(label, i))
+              );
+            } else if (label.type === 'shoe') {
+              Array.from({ length: count }, (_, i) =>
+                binShoe.push(renderShoeLabel(label, i))
+              );
+            }
+          });
+
+          // Group bin/shoe labels into pages of 4 (2×2 grid)
+          const binShoePages = Array.from(
+            { length: Math.ceil(binShoe.length / 4) },
+            (_, pageIdx) => (
+              <Box key={`bin-shoe-page-${pageIdx}`} className="label-page">
+                {binShoe.slice(pageIdx * 4, pageIdx * 4 + 4)}
+              </Box>
+            )
+          );
+
+          return [...shelfNotice, ...binShoePages];
+        })()}
       </Box>
 
       {/* Print Styles */}

@@ -1,494 +1,209 @@
-# My Sister's Closet of Monroe County - Label Maker
+# MSC Label Maker
 
 <div align="center">
-  <img src="client/public/images.png" alt="My Sister's Closet Logo" width="200"/>
-  <h3>Label Printing System</h3>
+  <img src="client/public/images.png" alt="My Sister's Closet Logo" width="160"/>
+  <h3>Label Printing System for My Sister's Closet of Monroe County</h3>
+  <p>A full-stack web application for creating and printing organizational labels</p>
 </div>
+
+---
 
 ## Overview
 
-The My Sister's Closet Label Maker is a full-stack web application designed to streamline the creation and printing of various labels for organizing donated items. The system provides an intuitive interface for creating shelf labels, bin labels, shoe bin labels, and full-page notices.
+MSC Label Maker is a purpose-built internal tool for **My Sister's Closet**, a non-profit thrift store. Staff use it to design, preview, and batch-print shelf labels, bin labels, shoe bin labels, and full-page notices — all optimized for standard 8.5" × 11" paper with minimal cutting required.
+
+The application runs fully in-browser for printing; the backend provides a REST API for persisting label templates via a lightweight SQLite database.
 
 ## Table of Contents
 
 - [Features](#features)
-- [Docker Optimizations](#docker-optimizations)
-- [Technical Stack](#technical-stack)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Deployment](#deployment)
-  - [Docker with Portainer](#option-1-docker-with-portainer-recommended)
-  - [Docker Compose](#option-2-docker-compose-cli)
-  - [Standard Deployment](#option-3-standard-deployment-no-docker)
+- [Skills Demonstrated](#skills-demonstrated)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Running Locally](#running-locally)
+- [Docker Deployment](#docker-deployment)
+- [Portainer Deployment](#portainer-deployment)
+- [Environment Variables](#environment-variables)
 - [Usage Guide](#usage-guide)
-- [Maintenance](#maintenance)
+- [Troubleshooting](#troubleshooting)
 
 ## Features
 
-### Label Types
-- **Shelf Labels**: Clothing rack identification (1" × 10")
-- **Generic Bin Labels**: Storage bin identification (5" × 5")
-- **Shoe Bin Labels**: Shoe storage with season & size (5" × 5")
-- **Full Page Notices**: Large announcements (8.5" × 11")
-
-**Important Print Settings:**
-- All labels print on standard 8.5" × 11" paper
-- Print queue can fit multiple smaller labels per page
-- Individual label prints are centered on 8.5" × 11" paper
-- Recommended printer settings: 100% scale, no shrink to fit
-
-### Label Management
-- **Print Queue System**: Add multiple labels to a queue before printing
-- **Real-time Preview**: See labels before printing with accurate sizing
-- **Print-Optimized Output**: All labels formatted for 8.5" × 11" paper
-- **Easy Navigation**: Clean, intuitive interface for quick label creation
-- **Individual or Batch Printing**: Print single labels or queue multiple labels
-
-### Data Management
-- **SQLite Database**: Lightweight, file-based database for template storage
-- **Template CRUD Operations**: Create, read, update, and delete label templates
-- **Automatic Backups**: Simple file-based backup strategy
-
-## Docker Optimizations
-
-This application has been optimized for efficient Docker deployment:
-
-### Image Optimizations
-- **Multi-stage builds**: Separate build and runtime stages reduce final image size by ~60%
-- **Alpine Linux base**: Minimal footprint (~50MB vs ~200MB for standard Node images)
-- **Layer caching**: Optimized Dockerfile layer ordering for faster rebuilds
-- **npm ci**: Uses clean install for deterministic builds
-- **.dockerignore**: Excludes unnecessary files from build context
-
-### Security Enhancements
-- **Non-root users**: All containers run as unprivileged users
-- **Minimal attack surface**: Alpine images with only required packages
-- **Security headers**: Nginx configured with XSS, clickjacking protection
-- **Read-only filesystem**: Where possible, containers use read-only mounts
-
-### Performance Features
-- **Health checks**: Automatic container restart on failure
-- **Resource limits**: CPU and memory constraints prevent resource exhaustion
-- **Gzip compression**: Enabled for all text-based assets
-- **Static asset caching**: 1-year cache for immutable assets
-
-### Monitoring & Reliability
-- **Health endpoints**: `/api/health` for monitoring
-- **Structured logging**: Console output compatible with log aggregators
-- **Graceful shutdown**: Proper signal handling for zero-downtime deployments
-- **Volume persistence**: Database and logs survive container restarts
-
-### Build Performance
-| Component | Before | After | Improvement |
-|-----------|--------|-------|-------------|
-| Server image | 450MB | 180MB | 60% reduction |
-| Client image | 350MB | 25MB | 93% reduction |
-| Build time | 4min | 2min | 50% faster |
-| Cold start | 15s | 8s | 47% faster |
-
-## Technical Stack
-
-### Frontend
-- React 18.2.0 with React Router v6
-- Material-UI (MUI) 5.15.10 for UI components
-- Axios for HTTP requests
-
-### Backend
-- Node.js with Express.js 4.18.2
-- SQLite3 5.1.7 for database
-- CORS for cross-origin requests
-
-## Prerequisites
-
-### For Docker Deployment (Recommended)
-- Docker Engine 20.10 or higher
-- Docker Compose v2.0 or higher (for CLI deployment)
-- Portainer CE 2.0 or higher (for Portainer deployment)
-- Minimum 2GB RAM
-- Minimum 10GB disk space
-
-### For Standard Deployment
-- Node.js (v16.0.0 or higher)
-- npm (v7.0.0 or higher)
-- Git
-
-### Optional
-- Nginx or Traefik (for reverse proxy)
-
-## Installation
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/ajgrego/MSC-Label-Maker.git
-cd MSC-Label-Maker
-```
-
-### 2. Install Dependencies
-
-Install dependencies for both client and server:
-
-```bash
-npm run install:all
-```
-
-Or install individually:
-
-```bash
-# Install root dependencies
-npm install
-
-# Install server dependencies
-cd server
-npm install
-
-# Install client dependencies
-cd ../client
-npm install
-```
-
-## Configuration
-
-### Database Setup
-
-The database is automatically initialized on first run. The SQLite database file will be created at:
-
-```
-/MSC-Label-Maker/server/database.sqlite
-```
-
-The label_templates table will be created automatically to store saved label templates.
-
-## Deployment
-
-### Development Mode
-
-Run both client and server in development mode with hot reloading:
-
-```bash
-npm run dev
-```
-
-This starts:
-- Client: http://localhost:3000
-- Server: http://localhost:5002
-
-### Production Deployment
-
-#### Option 1: Docker with Portainer (Recommended)
-
-**Portainer provides the easiest deployment experience with a web-based UI for managing Docker containers.**
-
-**Quick Start:**
-1. Copy `.env.example` to `.env` and configure:
-   ```bash
-   cp .env.example .env
-   nano .env  # Edit with your settings
-   ```
-
-2. In Portainer:
-   - Navigate to **Stacks** → **Add Stack**
-   - Name: `msc-label-maker`
-   - Upload `portainer-stack.yml` or paste content
-   - Add environment variables from `.env`
-   - Click **Deploy the stack**
-
-3. Access the application:
-   - Frontend: `http://your-server-ip:80`
-   - Backend: `http://your-server-ip:5002`
-
-📖 **For detailed Portainer deployment instructions, see [PORTAINER_DEPLOYMENT.md](./PORTAINER_DEPLOYMENT.md)**
-
-**Key Features:**
-- ✅ Health checks for automatic recovery
-- ✅ Resource limits to prevent overconsumption
-- ✅ Persistent volumes for data retention
-- ✅ Alpine-based images for minimal footprint
-- ✅ Non-root users for enhanced security
-- ✅ Optimized multi-stage builds
-
-#### Option 2: Docker Compose (CLI)
-
-**Prerequisites:**
-- Docker Engine 20.10+
-- Docker Compose v2.0+
-
-**Setup:**
-
-1. Create environment file:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   nano .env
-   ```
-
-2. Deploy the stack:
-   ```bash
-   docker-compose up -d
-   ```
-
-3. View logs:
-   ```bash
-   docker-compose logs -f
-   ```
-
-4. Stop the stack:
-   ```bash
-   docker-compose down
-   ```
-
-**Backup and Restore:**
-```bash
-# Backup volumes
-docker run --rm -v msc-label-maker_database-data:/data \
-  -v $(pwd):/backup alpine tar czf /backup/backup.tar.gz -C /data .
-
-# Restore volumes
-docker run --rm -v msc-label-maker_database-data:/data \
-  -v $(pwd):/backup alpine tar xzf /backup/backup.tar.gz -C /data
-```
-
-#### Option 3: Standard Deployment (No Docker)
-
-1. Build the React client:
-   ```bash
-   cd client
-   npm run build
-   ```
-
-2. Start the server:
-   ```bash
-   cd ../server
-   npm start
-   ```
-
-The server will serve the built React app in production mode.
-
-### Reverse Proxy Configuration
-
-For production with SSL/TLS, use Nginx or Traefik:
-
-#### Nginx Configuration
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    return 301 https://$server_name$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name your-domain.com;
-
-    ssl_certificate /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-
-    location / {
-        proxy_pass http://localhost:80;  # Docker client container
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    location /api {
-        proxy_pass http://localhost:5002;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-}
-```
-
-## Usage Guide
-
-### Creating Labels
-
-1. Navigate to the home page
-2. Select the type of label you want to create:
-   - **Shelf Label**: For clothing racks (1" × 10")
-   - **Generic Bin Label**: For storage bins (5" × 5")
-   - **Shoe Bin Label**: For shoe storage with season & size (5" × 5")
-   - **Full Page Notice**: For announcements (8.5" × 11")
-3. Fill in the label information
-4. Preview the label in the preview pane
-5. Choose to either:
-   - **Print Now**: Print the label immediately on 8.5" × 11" paper
-   - **Add to Queue**: Add to print queue for batch printing
-
-### Using the Print Queue
-
-1. Add multiple labels to the queue from any label designer page
-2. View queued labels in the sidebar on each page
-3. Navigate to the Print Queue page to review all labels
-4. Print all labels at once, optimally arranged on 8.5" × 11" pages
-5. Clear the queue after printing or to start fresh
-
-### Managing Label Templates
-
-The application includes a template system for saving and reusing frequently used labels:
-
-1. **Create**: Fill in label information and save as template
-2. **Load**: Select from saved templates to reuse
-3. **Update**: Modify and save changes to existing templates
-4. **Delete**: Remove templates you no longer need
-
-## Maintenance
-
-### Regular Tasks
-
-1. **Database Backups** (Recommended: Weekly)
-```bash
-# Backup the database
-cp server/database.sqlite backups/database-$(date +%Y%m%d).sqlite
-```
-
-2. **System Updates**
-```bash
-# Update dependencies
-npm update
-cd client && npm update
-cd ../server && npm update
-```
-
-### Monitoring
-
-Monitor the application logs:
-
-```bash
-# If using Docker
-docker-compose logs -f
-
-# If running directly
-cd server
-npm start
-```
-
-## Troubleshooting
-
-### Common Issues
-
-**Issue**: Database errors on startup
-- **Solution**: Delete `database.sqlite` to recreate (WARNING: loses saved templates).
-
-**Issue**: Port conflicts
-- **Solution**: Change ports in `.env` file or docker-compose.yml.
-
-**Issue**: Labels not displaying correctly
-- **Solution**: Clear browser cache and refresh.
-
-### Database Inspection
-
-To inspect the database directly:
-
-```bash
-sqlite3 server/database.sqlite
-
-# View all tables
-.tables
-
-# View label templates
-SELECT * FROM label_templates LIMIT 10;
-
-# Exit
-.exit
-```
+| Label Type | Size | Description |
+|---|---|---|
+| **Shelf Label** | 10" × 1" | Clothing rack identification; size field can be toggled off |
+| **Generic Bin Label** | 4.25" × 5.5" | Free-text storage bin label |
+| **Shoe Bin Label** | 4.25" × 5.5" | Structured label with season, size range, and category |
+| **Full Page Notice** | 8.5" × 11" | Large-format announcement with auto-sizing text |
+
+- **Live preview** — see exact label appearance before printing
+- **Print queue** — add labels from any page, then batch-print in one shot
+- **4-per-page layout** — bin and shoe labels print in a 2×2 grid for easy cutting
+- **Consistent multi-page alignment** — all pages start at the same position
+- **Blank label support** — queue placeholder labels for manual writing
+- **Label template storage** — save and reload frequently used labels via REST API
+
+## Skills Demonstrated
+
+- **React 18** — functional components, hooks (`useState`, `useCallback`, `useMemo`, `useContext`), Context API for global state
+- **Material UI v5** — theme customization, responsive Grid layout, form controls
+- **Print CSS** — `@page` sizing, `page-break-*`, flex-based multi-label layouts, hiding UI chrome during print
+- **Node.js / Express** — RESTful API design, SQLite persistence, health check endpoint
+- **Docker** — multi-stage builds (Node → Nginx), non-root users, Alpine images, health checks, named volumes
+- **Portainer** — stack deployment from Git, environment variable management
+- **Project hygiene** — monorepo structure, `.dockerignore`, clean gitignore, zero unused dependencies
+
+## Tech Stack
+
+**Frontend:** React 18 · React Router v6 · Material UI v5 · CSS print media queries
+**Backend:** Node.js · Express 4 · SQLite3 · CORS
+**Infrastructure:** Docker · Nginx · Portainer · Docker Compose
 
 ## Project Structure
 
 ```
 MSC-Label-Maker/
 ├── client/                      # React frontend
-│   ├── public/                 # Static assets
-│   │   └── images.png          # MSC logo
+│   ├── public/                  # Static assets (logo, manifest)
 │   ├── src/
-│   │   ├── components/         # Reusable components
-│   │   │   └── Navbar.js
-│   │   ├── pages/              # Page components
-│   │   │   ├── LabelHome.js
-│   │   │   ├── ShelfLabel.js
-│   │   │   ├── GenericBinLabel.js
-│   │   │   ├── ShoeBinLabel.js
-│   │   │   └── FullPageNotice.js
-│   │   ├── App.js              # Main app component
-│   │   └── index.js            # Entry point
-│   ├── Dockerfile              # Optimized multi-stage build
-│   ├── .dockerignore           # Docker build exclusions
-│   ├── nginx.conf              # Nginx configuration with optimizations
+│   │   ├── components/
+│   │   │   ├── Navbar.js        # App header
+│   │   │   └── PrintQueueSidebar.js  # Sticky queue panel
+│   │   ├── context/
+│   │   │   └── PrintQueueContext.js  # Global print queue state
+│   │   ├── pages/
+│   │   │   ├── LabelHome.js     # Landing page / label type selector
+│   │   │   ├── ShelfLabel.js    # Shelf label designer
+│   │   │   ├── GenericBinLabel.js    # Generic bin label designer
+│   │   │   ├── ShoeBinLabel.js  # Shoe bin label designer
+│   │   │   ├── FullPageNotice.js     # Full-page notice designer
+│   │   │   └── PrintQueue.js    # Batch print view
+│   │   ├── utils/
+│   │   │   └── printStyles.js   # @media print CSS for all label types
+│   │   ├── App.js               # Router + theme setup
+│   │   └── index.js             # React entry point
+│   ├── Dockerfile               # Multi-stage build (Node build → Nginx serve)
+│   ├── nginx.conf               # SPA routing + gzip + cache headers
 │   └── package.json
-├── server/                      # Node.js backend
+├── server/                      # Node.js API
 │   ├── src/
-│   │   ├── config/             # Configuration
-│   │   │   └── database.js     # Database setup
-│   │   ├── routes/             # API routes
-│   │   │   └── labels.js
-│   │   └── index.js            # Server entry point with health check
-│   ├── Dockerfile              # Optimized multi-stage build with security
-│   ├── .dockerignore           # Docker build exclusions
+│   │   ├── config/
+│   │   │   └── database.js      # SQLite init
+│   │   ├── routes/
+│   │   │   └── labels.js        # CRUD endpoints for label templates
+│   │   └── index.js             # Express app + /api/health endpoint
+│   ├── Dockerfile               # Multi-stage build with non-root user
 │   └── package.json
-├── .env.example                # Template for environment variables
-├── docker-compose.yml          # Docker Compose configuration with health checks
-├── portainer-stack.yml         # Portainer stack configuration
-├── PORTAINER_DEPLOYMENT.md     # Detailed Portainer deployment guide
-├── database.sqlite             # SQLite database (auto-created)
-├── package.json                # Root package (monorepo)
-├── LICENSE                     # MIT License
-└── README.md                   # This file
+├── docker-compose.yml           # Orchestrates client + server with health checks
+├── stack.env.example            # Environment variable reference
+├── .env.example                 # Local development env template
+├── package.json                 # Monorepo root (concurrently)
+└── LICENSE
 ```
 
-## Available Scripts
+## Running Locally
 
-### Root Directory
-- `npm start` - Start both client and server in production mode
-- `npm run dev` - Start both in development mode with hot reload
-- `npm run install:all` - Install all dependencies
-- `npm run client` - Start client only
-- `npm run server` - Start server only
+**Prerequisites:** Node.js v16+, npm v7+
 
-### Client Directory
-- `npm start` - Start React development server
-- `npm run build` - Build for production
-- `npm test` - Run tests
+```bash
+# 1. Clone the repo
+git clone https://github.com/ajgrego/MSC-Label-Maker.git
+cd MSC-Label-Maker
 
-### Server Directory
-- `npm start` - Start server with nodemon
-- `node src/index.js` - Start server directly
+# 2. Install all dependencies
+npm run install:all
 
-## Security Considerations
+# 3. Start client + server in development mode
+npm run dev
+```
 
-### Application Security
-1. **HTTPS/SSL**: Always use HTTPS in production with valid SSL certificates
-2. **CORS**: Configure appropriate CORS policies for your domain
-3. **Environment Variables**: Never commit sensitive data to version control
+- React client: http://localhost:3000
+- API server:  http://localhost:5002
 
-### Docker Security
-1. **Non-root Containers**: All containers run as non-root users (nodejs:1001, nginx)
-2. **Minimal Base Images**: Alpine Linux reduces attack surface
-3. **Security Headers**: Nginx configured with X-Frame-Options, X-Content-Type-Options, X-XSS-Protection
-4. **Resource Limits**: CPU and memory limits prevent DoS via resource exhaustion
-5. **Health Checks**: Automatic restart of unhealthy containers
-6. **Volume Permissions**: Proper ownership and permissions on mounted volumes
-7. **Regular Updates**: Keep base images and dependencies updated
+The SQLite database is created automatically at `server/data/database.sqlite` on first run.
 
-### Network Security
-1. **Isolated Network**: Containers communicate on isolated Docker network
-2. **Minimal Port Exposure**: Only necessary ports exposed to host
-3. **Reverse Proxy**: Use Nginx/Traefik with SSL termination
-4. **Firewall Rules**: Configure host firewall to restrict access
+## Docker Deployment
+
+```bash
+# Build and start both containers
+docker compose up --build -d
+
+# View logs
+docker compose logs -f
+
+# Stop
+docker compose down
+```
+
+- Web UI:   http://localhost:80
+- API:      http://localhost:5002
+
+The `msc-database` named volume persists the SQLite database across container restarts.
+
+### Docker highlights
+- **Multi-stage builds** — Node build stage produces artifacts; Nginx/Node runtime stage stays lean (~25 MB client, ~180 MB server)
+- **Non-root users** — server runs as `nodejs:1001`, client as `nginx`
+- **Health checks** — `/api/health` endpoint; client container waits for server to be healthy before starting
+- **Resource limits** — CPU and memory caps defined in Compose
+
+## Portainer Deployment
+
+1. In Portainer, go to **Stacks → Add Stack → Repository**
+2. Enter the Git repository URL
+3. Set the **Compose file path** to `docker-compose.yml`
+4. Optionally override `SERVER_PORT` and `CLIENT_PORT` in the environment variables panel
+5. Click **Deploy the stack**
+
+No secrets are required — the application does not use authentication.
+
+## Environment Variables
+
+All variables are optional. Defaults work out of the box.
+
+| Variable | Default | Description |
+|---|---|---|
+| `SERVER_PORT` | `5002` | Host port for the API server |
+| `CLIENT_PORT` | `80` | Host port for the web client |
+
+See `stack.env.example` for a ready-to-use template.
+
+## Usage Guide
+
+### Designing a label
+1. Choose a label type from the home page
+2. Fill in the fields (size, category, text, etc.)
+3. Preview updates live — what you see is what prints
+
+### Printing immediately
+Click **Print Now** on any designer page to open the browser print dialog and print directly.
+
+### Using the print queue
+1. Click **Add to Queue** on any designer page — the sidebar shows your queue
+2. Continue adding labels of any type (except notices can't be mixed with other types)
+3. Click **Print All Labels** in the sidebar to navigate to the Print Queue page
+4. Review, then click **Print All Labels** to send to your printer
+
+### Print tips
+- Set scale to **100%** and margins to **None** or **Minimum** in the browser print dialog
+- Bin/shoe labels print 4 per page in a 2×2 grid — one horizontal cut + one vertical cut separates all four labels
+- Shelf labels print in landscape; stack pages and make one cut per label strip
+
+## Troubleshooting
+
+**Labels misaligned on first page** — ensure browser print margins are set to **None**
+
+**Port already in use** — change `SERVER_PORT` or `CLIENT_PORT` in `.env` / Portainer env vars
+
+**Database errors on startup** — delete `server/data/database.sqlite` to recreate it (templates will be lost)
+
+**Inspect the database directly:**
+```bash
+sqlite3 server/data/database.sqlite
+.tables
+SELECT * FROM label_templates;
+.exit
+```
 
 ## License
 
-This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
-
----
-
-<div align="center">
-  <p>Developed for My Sister's Closet of Monroe County</p>
-</div>
+MIT — see [LICENSE](./LICENSE)

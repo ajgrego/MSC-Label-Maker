@@ -33,10 +33,9 @@ COPY --from=dependencies --chown=nodejs:nodejs /app/node_modules ./node_modules
 # Copy application source
 COPY --chown=nodejs:nodejs package*.json ./
 COPY --chown=nodejs:nodejs src ./src
-COPY --chown=nodejs:nodejs reset-db.js ./
 
-# Create required directories with proper permissions
-RUN mkdir -p /app/data /app/excel-logs /app/temp && \
+# Create data directory for SQLite database
+RUN mkdir -p /app/data && \
     chown -R nodejs:nodejs /app
 
 # Switch to non-root user

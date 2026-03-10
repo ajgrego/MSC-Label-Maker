@@ -1,29 +1,67 @@
-// Shared print styles for all label pages
+/**
+ * Shared print styles for all label types.
+ *
+ * Each exported function returns a CSS string that:
+ *  - Hides the Navbar (.MuiAppBar-root) and all .no-print elements
+ *  - Strips MUI Container padding so labels align from the page edge
+ *  - Reveals .print-only content and lets it flow naturally (no absolute
+ *    positioning), which fixes the first-vs-subsequent-page alignment bug
+ *  - Configures @page size and margins for the specific label type
+ */
+
+/** CSS reset shared by every print stylesheet */
+const basePrintReset = `
+  /* Hide all UI chrome — navbar, forms, sidebar */
+  .no-print,
+  .MuiAppBar-root {
+    display: none !important;
+  }
+
+  /* Remove MUI Container constraints so labels fill the printable area */
+  .MuiContainer-root {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Show print content in normal document flow (not absolute-positioned)
+     so every page renders with identical top alignment */
+  .print-only {
+    display: block !important;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+`;
+
+/**
+ * Bin & shoe labels — portrait, 4 per page in a 2×2 grid.
+ * Labels are 4.25in × 5.5in (half the letter sheet in each dimension).
+ * Zero page margin means labels fill edge-to-edge for easy single-cut trimming.
+ */
 export const getPrintStyles = () => `
   @media print {
     @page {
       size: 8.5in 11in;
-      margin: 0.5in 0.25in 0.25in 0.25in;
+      margin: 0;
     }
-
-    body * {
-      visibility: hidden;
-    }
-
-    .print-only,
-    .print-only * {
-      visibility: visible;
-    }
-
+    ${basePrintReset}
+    /* 2×2 flex grid — each .label-page holds exactly 4 labels */
     .print-only {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
+      display: flex !important;
+      flex-wrap: wrap;
+      width: 8.5in;
     }
-
-    .no-print {
-      display: none !important;
+    .label-page {
+      display: flex !important;
+      flex-wrap: wrap;
+      width: 8.5in;
+      height: 11in;
+      page-break-after: always;
+      page-break-inside: avoid;
+    }
+    .label-page:last-child {
+      page-break-after: auto;
     }
   }
 
@@ -34,33 +72,16 @@ export const getPrintStyles = () => `
   }
 `;
 
-// Print styles for shelf labels (landscape orientation)
+/**
+ * Shelf labels — landscape orientation, multiple strips per page.
+ */
 export const getShelfLabelPrintStyles = () => `
   @media print {
     @page {
       size: 11in 8.5in;
-      margin: 0.5in 0.25in;
+      margin: 0.25in;
     }
-
-    body * {
-      visibility: hidden;
-    }
-
-    .print-only,
-    .print-only * {
-      visibility: visible;
-    }
-
-    .print-only {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-    }
-
-    .no-print {
-      display: none !important;
-    }
+    ${basePrintReset}
   }
 
   @media screen {
@@ -70,34 +91,17 @@ export const getShelfLabelPrintStyles = () => `
   }
 `;
 
-// Print styles for full page notices (no margins)
+/**
+ * Full-page notices — portrait, zero margin so the thick border
+ * runs to the very edge of the paper.
+ */
 export const getFullPagePrintStyles = () => `
   @media print {
     @page {
       size: 8.5in 11in;
       margin: 0;
     }
-
-    body * {
-      visibility: hidden;
-    }
-
-    .print-only,
-    .print-only * {
-      visibility: visible;
-    }
-
-    .print-only {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      transform: scale(1) !important;
-    }
-
-    .no-print {
-      display: none !important;
-    }
+    ${basePrintReset}
   }
 
   @media screen {

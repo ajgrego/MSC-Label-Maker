@@ -1,7 +1,16 @@
 version: '3.8'
 
-# MSC Label Maker - Docker Compose Configuration
-# Optimized for Portainer Stack Deployment from Git Repository
+# MSC Label Maker — Docker Compose Configuration
+# Supports both local development (docker compose up) and Portainer stack deployment.
+#
+# QUICK START (local):
+#   cp stack.env.example .env
+#   docker compose up --build
+#
+# PORTAINER SETUP:
+#   1. Create a new Portainer stack from this Git repository
+#   2. Set environment variables in the Portainer UI (Stack > Environment variables)
+#   3. See stack.env.example for all available variables
 
 services:
   msc-server:
@@ -16,17 +25,9 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5002
-      - JWT_SECRET=${JWT_SECRET:-change-this-secret-in-production}
-      - SMTP_HOST=${SMTP_HOST:-}
-      - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-}
-      - SMTP_PASS=${SMTP_PASS:-}
-      - SMTP_FROM=${SMTP_FROM:-}
-      - CLIENT_URL=${CLIENT_URL:-http://localhost}
     volumes:
+      # Persist SQLite database between container restarts
       - msc-database:/app/data
-      - msc-excel-logs:/app/excel-logs
-      - msc-temp:/app/temp
     networks:
       - msc-network
     healthcheck:
@@ -38,11 +39,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
           cpus: '0.5'
           memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   msc-client:
     build:
@@ -82,9 +83,3 @@ volumes:
   msc-database:
     driver: local
     name: msc-database
-  msc-excel-logs:
-    driver: local
-    name: msc-excel-logs
-  msc-temp:
-    driver: local
-    name: msc-temp

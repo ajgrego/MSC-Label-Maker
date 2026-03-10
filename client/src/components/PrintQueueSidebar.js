@@ -36,7 +36,9 @@ const PrintQueueSidebar = () => {
     }
     switch (label.type) {
       case 'shelf':
-        return `Size: ${label.data.size} - ${label.data.category}`;
+        return label.data.showSize !== false
+          ? `Size: ${label.data.size} — ${label.data.category}`
+          : label.data.category || '(No category)';
       case 'bin':
         return label.data.labelText;
       case 'shoe':

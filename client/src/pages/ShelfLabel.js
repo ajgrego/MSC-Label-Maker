@@ -9,7 +9,9 @@ import {
   Select,
   MenuItem,
   FormControl,
+  FormControlLabel,
   InputLabel,
+  Switch,
   Grid,
   Alert,
   Snackbar,
@@ -25,6 +27,7 @@ const ShelfLabel = () => {
   const [size, setSize] = useState('M');
   const [category, setCategory] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [showSize, setShowSize] = useState(true); // toggle: include size field on printed label
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -43,7 +46,7 @@ const ShelfLabel = () => {
   const handleAddToQueue = useCallback(() => {
     const result = addToQueue({
       type: 'shelf',
-      data: { size, category, quantity },
+      data: { size, category, quantity, showSize },
     });
     if (result && result.error) {
       setErrorMessage(result.error);
@@ -56,7 +59,7 @@ const ShelfLabel = () => {
   const handleAddBlankToQueue = useCallback(() => {
     const result = addToQueue({
       type: 'shelf',
-      data: { size: '', category: '', quantity: quantity, isBlank: true },
+      data: { size: '', category: '', quantity, showSize, isBlank: true },
     });
     if (result && result.error) {
       setErrorMessage(result.error);
@@ -70,6 +73,7 @@ const ShelfLabel = () => {
     setSize('M');
     setCategory('');
     setQuantity(1);
+    setShowSize(true);
   }, []);
 
   return (
@@ -128,6 +132,19 @@ const ShelfLabel = () => {
                 value={quantity}
                 onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                 inputProps={{ min: 1, max: 20 }}
+                sx={{ mt: 2 }}
+              />
+
+              {/* Toggle: show or hide the size field on the printed label */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showSize}
+                    onChange={(e) => setShowSize(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label="Show size on label"
                 sx={{ mt: 2 }}
               />
 
@@ -196,7 +213,7 @@ const ShelfLabel = () => {
                     sx={{
                       width: '10in',
                       height: '1in',
-                      border: '5pt solid #F052A1',
+                      border: '16pt solid #F052A1',
                       bgcolor: 'white',
                       display: 'flex',
                       alignItems: 'center',
@@ -206,33 +223,17 @@ const ShelfLabel = () => {
                       boxSizing: 'border-box',
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography
-                        sx={{
-                          fontWeight: 'bold',
-                          fontSize: '30pt',
-                          color: '#F052A1',
-                        }}
-                      >
-                        Size:
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontWeight: 'bold',
-                          fontSize: '30pt',
-                          color: '#F052A1',
-                        }}
-                      >
-                        {size}
-                      </Typography>
-                    </Box>
-                    <Typography
-                      sx={{
-                        fontWeight: 'bold',
-                        fontSize: '30pt',
-                        color: 'black',
-                      }}
-                    >
+                    {showSize && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography sx={{ fontWeight: 'bold', fontSize: '30pt', color: '#F052A1' }}>
+                          Size:
+                        </Typography>
+                        <Typography sx={{ fontWeight: 'bold', fontSize: '30pt', color: '#F052A1' }}>
+                          {size}
+                        </Typography>
+                      </Box>
+                    )}
+                    <Typography sx={{ fontWeight: 'bold', fontSize: '30pt', color: 'black' }}>
                       {category || 'Category'}
                     </Typography>
                   </Box>
@@ -281,7 +282,7 @@ const ShelfLabel = () => {
             sx={{
               width: '10in',
               height: '1in',
-              border: '8pt solid #F052A1',
+              border: '16pt solid #F052A1',
               bgcolor: 'white',
               display: 'flex',
               alignItems: 'center',
@@ -292,33 +293,17 @@ const ShelfLabel = () => {
               margin: '0.25in auto',
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '45pt',
-                  color: '#F052A1',
-                }}
-              >
-                Size:
-              </Typography>
-              <Typography
-                sx={{
-                  fontWeight: 'bold',
-                  fontSize: '45pt',
-                  color: '#F052A1',
-                }}
-              >
-                {size}
-              </Typography>
-            </Box>
-            <Typography
-              sx={{
-                fontWeight: 'bold',
-                fontSize: '45pt',
-                color: 'black',
-              }}
-            >
+            {showSize && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ fontWeight: 'bold', fontSize: '45pt', color: '#F052A1' }}>
+                  Size:
+                </Typography>
+                <Typography sx={{ fontWeight: 'bold', fontSize: '45pt', color: '#F052A1' }}>
+                  {size}
+                </Typography>
+              </Box>
+            )}
+            <Typography sx={{ fontWeight: 'bold', fontSize: '45pt', color: 'black' }}>
               {category || 'Category'}
             </Typography>
           </Box>

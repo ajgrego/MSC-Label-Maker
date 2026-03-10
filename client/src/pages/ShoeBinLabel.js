@@ -94,9 +94,9 @@ const ShoeBinLabel = () => {
   const LabelContent = () => (
     <Box
       sx={{
-        width: '5.5in',
+        width: '4.25in',
         height: '5.5in',
-        border: '8pt solid #F052A1',
+        border: '12pt solid #F052A1',
         bgcolor: 'white',
         display: 'flex',
         flexDirection: 'column',
@@ -110,14 +110,14 @@ const ShoeBinLabel = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderBottom: '8pt solid #F052A1',
-          padding: '10px',
+          borderBottom: '12pt solid #F052A1',
+          padding: '8px',
         }}
       >
         <Typography
           sx={{
             fontWeight: 'bold',
-            fontSize: '32pt',
+            fontSize: '26pt',
             color: 'black',
             textAlign: 'center',
           }}
@@ -133,14 +133,14 @@ const ShoeBinLabel = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderBottom: '8pt solid #F052A1',
-          padding: '10px',
+          borderBottom: '12pt solid #F052A1',
+          padding: '8px',
         }}
       >
         <Typography
           sx={{
             fontWeight: 'bold',
-            fontSize: '32pt',
+            fontSize: '26pt',
             color: '#F052A1',
             textAlign: 'center',
           }}
@@ -156,13 +156,13 @@ const ShoeBinLabel = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '10px',
+          padding: '8px',
         }}
       >
         <Typography
           sx={{
             fontWeight: 'bold',
-            fontSize: '32pt',
+            fontSize: '26pt',
             color: 'black',
             textAlign: 'center',
           }}
@@ -309,8 +309,8 @@ const ShoeBinLabel = () => {
                 <Box
                   className="shoe-label-preview"
                   sx={{
-                    transform: 'scale(0.7)',
-                    transformOrigin: 'center',
+                    transform: 'scale(0.55)',
+                    transformOrigin: 'top center',
                   }}
                 >
                   <LabelContent />
@@ -350,17 +350,18 @@ const ShoeBinLabel = () => {
         </Alert>
       </Snackbar>
 
-      {/* Print Only - Multiple copies */}
+      {/* Print Only — grouped into pages of 4 (2×2 grid), easy single-cut trimming */}
       <Box className="print-only">
-        {Array.from({ length: quantity }, (_, i) => (
-          <Box
-            key={i}
-            sx={{
-              margin: '0.5in auto',
-              pageBreakAfter: i < quantity - 1 ? 'always' : 'auto',
-            }}
-          >
-            <LabelContent />
+        {Array.from({ length: Math.ceil(quantity / 4) }, (_, pageIdx) => (
+          <Box key={pageIdx} className="label-page">
+            {Array.from(
+              { length: Math.min(4, quantity - pageIdx * 4) },
+              (_, labelIdx) => (
+                <Box key={labelIdx}>
+                  <LabelContent />
+                </Box>
+              )
+            )}
           </Box>
         ))}
       </Box>
