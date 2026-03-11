@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { Print as PrintIcon, ArrowBack as BackIcon } from '@mui/icons-material';
 import { usePrintQueue } from '../context/PrintQueueContext';
-import { getFullPagePrintStyles, getPrintStyles, getShelfLabelPrintStyles } from '../utils/printStyles';
+import { getFullPagePrintStyles, getMixedPrintStyles, getPrintStyles, getShelfLabelPrintStyles } from '../utils/printStyles';
 
 const PrintQueue = () => {
   const navigate = useNavigate();
@@ -272,10 +272,12 @@ const PrintQueue = () => {
   // Check if queue contains any full page notices or shelf labels
   const hasNotices = queue.some(label => label.type === 'notice');
   const hasShelfLabels = queue.some(label => label.type === 'shelf');
+  const hasBinShoe = queue.some(label => label.type === 'bin' || label.type === 'shoe');
 
   // Determine which print styles to use
   const getPrintStylesForQueue = () => {
     if (hasNotices) return getFullPagePrintStyles();
+    if (hasShelfLabels && hasBinShoe) return getMixedPrintStyles();
     if (hasShelfLabels) return getShelfLabelPrintStyles();
     return getPrintStyles();
   };
@@ -379,7 +381,11 @@ const PrintQueue = () => {
             )
           );
 
-          return [...shelfNotice, ...binShoePages];
+          const shelfSection = shelfNotice.length > 0
+            ? <div key="shelf-section" className="shelf-section">{shelfNotice}</div>
+            : null;
+
+          return [shelfSection, ...binShoePages].filter(Boolean);
         })()}
       </Box>
 

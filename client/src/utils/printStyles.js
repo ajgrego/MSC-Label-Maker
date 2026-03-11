@@ -93,6 +93,45 @@ export const getShelfLabelPrintStyles = () => `
 `;
 
 /**
+ * Mixed queue — shelf labels on landscape pages, bin/shoe on portrait pages.
+ * Uses CSS named pages so both orientations coexist in one print job.
+ */
+export const getMixedPrintStyles = () => `
+  @media print {
+    @page portrait-page {
+      size: 8.5in 11in;
+      margin: 0.25in;
+    }
+    @page landscape-page {
+      size: 11in 8.5in;
+      margin: 0.25in;
+    }
+    ${basePrintReset}
+    .shelf-section {
+      page: landscape-page;
+    }
+    .label-page {
+      page: portrait-page;
+      display: flex !important;
+      flex-wrap: wrap;
+      width: 8in;
+      height: 10.5in;
+      page-break-after: always;
+      page-break-inside: avoid;
+    }
+    .label-page:last-child {
+      page-break-after: auto;
+    }
+  }
+
+  @media screen {
+    .print-only {
+      display: none;
+    }
+  }
+`;
+
+/**
  * Full-page notices — portrait, zero margin so the thick border
  * runs to the very edge of the paper.
  */

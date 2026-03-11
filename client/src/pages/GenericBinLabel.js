@@ -249,8 +249,8 @@ const GenericBinLabel = () => {
                   key={labelIdx}
                   className="bin-label-print"
                   sx={{
-                    width: '4.25in',
-                    height: '5.5in',
+                    width: '4in',
+                    height: '4.5in',
                     border: '12pt solid #F052A1',
                     bgcolor: 'white',
                     display: 'flex',
