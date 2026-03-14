@@ -56,7 +56,7 @@ export const getPrintStyles = () => `
     .label-page {
       display: flex !important;
       flex-wrap: wrap;
-      align-content: space-between;
+      align-content: flex-start;
       width: 8in;
       height: 10.5in;
       page-break-after: always;
