@@ -56,6 +56,7 @@ export const getPrintStyles = () => `
     .label-page {
       display: flex !important;
       flex-wrap: wrap;
+      align-content: space-between;
       width: 8in;
       height: 10.5in;
       page-break-after: always;
@@ -114,6 +115,7 @@ export const getMixedPrintStyles = () => `
       page: portrait-page;
       display: flex !important;
       flex-wrap: wrap;
+      align-content: space-between;
       width: 8in;
       height: 10.5in;
       page-break-after: always;
